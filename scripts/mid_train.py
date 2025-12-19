@@ -28,6 +28,7 @@ from tasks.gsm8k import GSM8K
 from tasks.mmlu import MMLU
 from tasks.smoltalk import SmolTalk
 from tasks.customjson import CustomJSON
+from tasks.spellingbee import SimpleSpelling, SpellingBee
 
 # -----------------------------------------------------------------------------
 run = "dummy" # wandb run name default ("dummy" is special - we won't log to wandb)
@@ -100,7 +101,9 @@ train_dataset = TaskMixture([
     GSM8K(subset="main", split="train"), # 8K rows teaching simple math and (calculator) tool use
     CustomJSON(filepath=identity_conversations_filepath), # 1000 rows of synthetic identity conversations
     CustomJSON(filepath=identity_conversations_filepath), # let's do 2 epochs of these
-]) # total: 460K + 100K + 8K = 568K rows
+    SimpleSpelling(size=200000, split="train"), # 200K rows of Simple Spelling (e.g. spell the word 'apple')
+    SpellingBee(size=80000, split="train"), # 80K rows of Spelling Bee (e.g. how many 'r' are in 'strawberry'?)
+]) # total: 460K + 100K + 8K + 200K + 80K = 848K rows
 val_dataset = TaskMixture([
     SmolTalk(split="test"), # 24K rows in test set
     MMLU(subset="all", split="test", stop=5200), # 14K rows in test set, use only 5.2K to match the train ratios
@@ -109,7 +112,7 @@ val_dataset = TaskMixture([
 # DataLoader is defined here, it emits inputs, targets : 2D tensors of shape (device_batch_size, max_seq_len)
 # A big problem is that we don't know the final num_iterations in advance. So we create
 # these two global variables and update them from within the data generator.
-last_step = False # we will toggle this to True when we reach the end of the dataset
+last_step = False # we will toggle this to True when we reach the end of the training dataset
 approx_progress = 0.0 # will go from 0 to 1 over the course of the epoch
 def mid_data_generator(split):
     global last_step, approx_progress
@@ -119,7 +122,8 @@ def mid_data_generator(split):
     assert dataset_size > 0
     needed_tokens = device_batch_size * max_seq_len + 1 # to form one training batch of inputs,targets
     token_buffer = deque()
-    scratch = torch.empty(needed_tokens, dtype=torch.int64, pin_memory=True)
+    # CUDA supports memory pinning for faster transfers between CPU and GPU:
+    scratch = torch.empty(needed_tokens, dtype=torch.int64, pin_memory=(device_type == "cuda"))
     cursor = ddp_rank # increments by ddp_world_size each time, so each rank processes unique documents
     it = 0 # iteration counter
     while True:
@@ -135,7 +139,7 @@ def mid_data_generator(split):
                     last_step = True # toggle last_step to True, which will terminate the training loop
         # Stopping condition to respect num_iterations, if given
         it += 1
-        if num_iterations > 0 and it >= num_iterations:
+        if 0 < num_iterations <= it and split == "train":
             last_step = True # toggle last_step to True, which will terminate the training loop
         # Build up inputs/targets and yield
         for i in range(needed_tokens):
@@ -264,7 +268,7 @@ while True:
     smooth_train_loss = ema_beta * smooth_train_loss + (1 - ema_beta) * train_loss.item() # EMA the training loss
     debiased_smooth_loss = smooth_train_loss / (1 - ema_beta**(step + 1)) # debias the EMA
     pct_done = 100 * progress
-    tok_per_sec = int(world_tokens_per_fwdbwd / dt)
+    tok_per_sec = int(total_batch_size / dt)
     flops_per_sec = num_flops_per_token * total_batch_size / dt
     promised_flops_per_sec_h100 = 989e12 * ddp_world_size # bfloat16 H100 SXM and without 2:4 sparsity
     mfu = 100 * flops_per_sec / promised_flops_per_sec_h100 # in %
