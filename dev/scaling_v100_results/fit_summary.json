@@ -39,5 +39,23 @@
     2.1437364295005077,
     9.181779971951688,
     21.225253572755268
-  ]
+  ],
+  "benchmark_summary": {
+    "n_evaluated": 20,
+    "best_core": 0.0715,
+    "best_core_row": {
+      "flops_budget": 3e+16,
+      "depth": 4,
+      "model_tag": "v100_min_3e16_d4",
+      "step": 1213,
+      "val_bpb": 1.080809,
+      "core_metric": 0.0715,
+      "train_bpb": 1.066329,
+      "eval_time_sec": 73,
+      "effective_params": 11534384.0,
+      "params_total": 36700242,
+      "tokens_trained": 317980672
+    },
+    "mean_core": -0.0032649999999999997
+  }
 }

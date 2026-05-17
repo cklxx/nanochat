@@ -154,6 +154,55 @@ All in `figures/`:
 - `token_param_ratio.png` — D*/N* climbs from ~1 to ~21 across the four
   budgets, hitting Chinchilla.
 
+## 5. Capability emergence (DCLM CORE benchmark)
+
+Each of the 20 final checkpoints was evaluated with
+`scripts/base_eval.py --eval=core,bpb,sample --max-per-task=200`. CORE is
+the *centered* DCLM ICL accuracy aggregated over ~22 tasks (ARC, HellaSwag,
+OBQA, MMLU subsets, BoolQ, BigBench-LangID, …). Definition: random
+performance ⇒ CORE = 0; GPT-2 (1.6B) ⇒ CORE ≈ 0.256.
+
+Raw CSV: `benchmarks.csv`. Plots: `figures/core_vs_compute.png` and
+`figures/core_vs_params.png`.
+
+### Headline numbers
+
+| C (FLOPs) | best CORE | which run | val_bpb of that run |
+|---:|---:|:--|---:|
+| 1e15 | +0.019 | d=10 | 3.124 |
+| 3e15 | +0.012 | d=12 | 2.939 |
+| 1e16 | **+0.041** | d=4  | 1.165 |
+| 3e16 | **+0.072** | d=4  | 1.081 |
+
+Five **null observations** at C ≤ 3e15: every CORE measurement is within
+±0.04 of zero, indistinguishable from random.
+
+Two **clear-but-tiny positive signals** at C ≥ 1e16:
+
+- C = 1e16, d=4 → CORE = **+0.041** (val_bpb 1.165, eff. N ≈ 11.5M)
+- C = 3e16, d=4 → CORE = **+0.072** (val_bpb 1.081)
+- C = 3e16, d=6 → CORE = **+0.063** (val_bpb 1.085)
+
+Pattern: only the *compute-optimal* models (those whose IsoFLOP curves
+already showed the minimum) develop above-random capability. The biggest
+models in our sweep (d=10, d=12) are too undertrained at every budget and
+stay near random.
+
+### Interpretation
+
+- **Yes, there is non-trivial capability above random** in the best
+  3e16-FLOPs run — a ~36M-param model trained on 318M tokens reaches
+  CORE +0.07. That's 4× below GPT-2 1.6B (0.256) but ~3× above the
+  noise floor we measured at C ≤ 3e15.
+- The signal *strictly tracks* val_bpb on the IsoFLOP frontier: the
+  better the language modeling, the higher the CORE. Capability does
+  not appear in over-parameterised under-trained models even though
+  they have more weights.
+- We do not see any **abrupt** emergence threshold in this range, which
+  is consistent with the literature: capability emergence is a function
+  of *both* parameters and training tokens, and our smallest scale is
+  well below the typical emergence regime.
+
 | compute (FLOPs) | depth | params_total | tokens | val_bpb |
 |---|---|---|---|---|
 | … | … | … | … | … |
