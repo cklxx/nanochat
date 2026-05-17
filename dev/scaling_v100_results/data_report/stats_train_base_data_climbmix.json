@@ -1,0 +1,105 @@
+{
+  "dir": "/home/chenkailun.c/.cache/nanochat/base_data_climbmix",
+  "split": "train",
+  "aggregate": {
+    "n_docs": 592896,
+    "n_chars": 1761954831,
+    "n_words": 288701644,
+    "n_shards": 7,
+    "letter_ratio_mean": 0.9888424784253775,
+    "prefix_dup_rate": 0.00015685718911917097
+  },
+  "per_shard": [
+    {
+      "file": "shard_00001.parquet",
+      "n_docs": 86016,
+      "n_chars": 252401520,
+      "n_words": 41413996,
+      "char_len_p50": 2464.0,
+      "char_len_p95": 6945.25,
+      "char_len_p99": 18057.700000000128,
+      "word_len_p50": 406.0,
+      "letter_ratio_mean": 0.9889068648781003,
+      "prefix_duplicates": 8,
+      "prefix_dup_rate": 9.300595238095238e-05
+    },
+    {
+      "file": "shard_00002.parquet",
+      "n_docs": 84992,
+      "n_chars": 251992046,
+      "n_words": 41297439,
+      "char_len_p50": 2461.0,
+      "char_len_p95": 6946.0,
+      "char_len_p99": 18871.0,
+      "word_len_p50": 406.0,
+      "letter_ratio_mean": 0.9888114757942672,
+      "prefix_duplicates": 11,
+      "prefix_dup_rate": 0.00012942394578313254
+    },
+    {
+      "file": "shard_00003.parquet",
+      "n_docs": 83968,
+      "n_chars": 252157941,
+      "n_words": 41272641,
+      "char_len_p50": 2452.0,
+      "char_len_p95": 7063.649999999994,
+      "char_len_p99": 19533.660000000003,
+      "word_len_p50": 404.0,
+      "letter_ratio_mean": 0.9887725604409636,
+      "prefix_duplicates": 13,
+      "prefix_dup_rate": 0.00015482088414634147
+    },
+    {
+      "file": "shard_00004.parquet",
+      "n_docs": 83968,
+      "n_chars": 250642004,
+      "n_words": 41094742,
+      "char_len_p50": 2453.0,
+      "char_len_p95": 7055.649999999994,
+      "char_len_p99": 19223.61000000003,
+      "word_len_p50": 404.0,
+      "letter_ratio_mean": 0.9888736103592579,
+      "prefix_duplicates": 16,
+      "prefix_dup_rate": 0.00019054878048780488
+    },
+    {
+      "file": "shard_00005.parquet",
+      "n_docs": 84992,
+      "n_chars": 251986610,
+      "n_words": 41246930,
+      "char_len_p50": 2460.0,
+      "char_len_p95": 7086.449999999997,
+      "char_len_p99": 19261.979999999923,
+      "word_len_p50": 406.0,
+      "letter_ratio_mean": 0.9888415016246029,
+      "prefix_duplicates": 15,
+      "prefix_dup_rate": 0.00017648719879518072
+    },
+    {
+      "file": "shard_00008.parquet",
+      "n_docs": 83968,
+      "n_chars": 250035972,
+      "n_words": 40983940,
+      "char_len_p50": 2455.0,
+      "char_len_p95": 7070.0,
+      "char_len_p99": 19325.20000000007,
+      "word_len_p50": 405.0,
+      "letter_ratio_mean": 0.9887947206503971,
+      "prefix_duplicates": 12,
+      "prefix_dup_rate": 0.00014291158536585365
+    },
+    {
+      "file": "shard_00009.parquet",
+      "n_docs": 84992,
+      "n_chars": 252738738,
+      "n_words": 41391956,
+      "char_len_p50": 2451.0,
+      "char_len_p95": 7065.0,
+      "char_len_p99": 18757.359999999986,
+      "word_len_p50": 405.0,
+      "letter_ratio_mean": 0.9888966152300535,
+      "prefix_duplicates": 18,
+      "prefix_dup_rate": 0.00021178463855421687
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "dir": "/home/chenkailun.c/.cache/nanochat/base_data_climbmix",
+  "n_shards": 8,
+  "total_size_mb": 734.41,
+  "shards": [
+    {
+      "file": "shard_00001.parquet",
+      "size_mb": 92.12,
+      "row_groups": 84,
+      "rows": 86016
+    },
+    {
+      "file": "shard_00002.parquet",
+      "size_mb": 91.8,
+      "row_groups": 83,
+      "rows": 84992
+    },
+    {
+      "file": "shard_00003.parquet",
+      "size_mb": 91.79,
+      "row_groups": 82,
+      "rows": 83968
+    },
+    {
+      "file": "shard_00004.parquet",
+      "size_mb": 91.43,
+      "row_groups": 82,
+      "rows": 83968
+    },
+    {
+      "file": "shard_00005.parquet",
+      "size_mb": 91.85,
+      "row_groups": 83,
+      "rows": 84992
+    },
+    {
+      "file": "shard_00008.parquet",
+      "size_mb": 91.16,
+      "row_groups": 82,
+      "rows": 83968
+    },
+    {
+      "file": "shard_00009.parquet",
+      "size_mb": 92.07,
+      "row_groups": 83,
+      "rows": 84992
+    },
+    {
+      "file": "shard_00010.parquet",
+      "size_mb": 92.18,
+      "row_groups": 83,
+      "rows": 84992
+    }
+  ]
+}
