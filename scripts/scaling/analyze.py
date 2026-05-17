@@ -123,11 +123,26 @@ def main():
     _save(fig, "isoflop")
 
     # ===== Loss vs compute (compute-optimal frontier) =====
-    # Use the per-budget minimum val_bpb among runs as the empirical optimum
-    # (a conservative proxy when the IsoFLOP fit isn't unimodal).
-    opt = (df.sort_values("val_bpb")
-             .drop_duplicates("flops_budget")
-             .sort_values("flops_budget"))
+    # Prefer the IsoFLOP fit's bpb* when available; otherwise the per-budget
+    # empirical min val_bpb (a conservative proxy when the fit isn't unimodal).
+    opt_rows = []
+    for c in flops_budgets:
+        sub = df[df["flops_budget"] == c].sort_values("effective_params")
+        if len(sub) >= 3:
+            fit = isoflop_fit(sub)
+            if fit:
+                n_star = fit["N_star"]
+                bpb_star = fit["bpb_star"]
+                # take the actual run closest to N_star (for tokens/depth)
+                idx = (np.log10(sub["effective_params"]) - np.log10(n_star)).abs().idxmin()
+                row = sub.loc[idx].copy()
+                row["val_bpb"] = bpb_star
+                row["effective_params"] = n_star
+                opt_rows.append(row)
+                continue
+        # fallback: empirical min within this budget
+        opt_rows.append(sub.loc[sub["val_bpb"].idxmin()])
+    opt = pd.DataFrame(opt_rows).sort_values("flops_budget")
     fig, ax = plt.subplots(1, 1, figsize=(6.5, 5))
     ax.loglog(opt["flops_budget"], opt["val_bpb"], "o-", markersize=9)
     # power-law fit: val_bpb - irreducible ≈ A * C^(-alpha). Fit on raw bpb first.
@@ -146,10 +161,8 @@ def main():
     # ===== Optimal N(C) and D(C) =====
     fit_summary = {"isoflop_fits": iso_fits, "loss_vs_compute": loss_fit | {"yhat": None}}
 
-    # Use per-budget *empirical* optimum row for N* and D*
-    opt_rows = (df.sort_values("val_bpb")
-                  .drop_duplicates("flops_budget")
-                  .sort_values("flops_budget"))
+    # Use the IsoFLOP-derived optima (with empirical fallback) for N*, D*
+    opt_rows = opt
     if len(opt_rows) >= 2:
         n_fit = power_law_fit(opt_rows["flops_budget"].values,
                               opt_rows["effective_params"].values)
@@ -184,6 +197,20 @@ def main():
 
         fit_summary["N_vs_C"] = {k: v for k, v in n_fit.items() if k != "yhat"}
         fit_summary["D_vs_C"] = {k: v for k, v in d_fit.items() if k != "yhat"}
+
+        # ===== Token:param ratio at the compute-optimal frontier =====
+        # Chinchilla predicted ~20; nanochat empirically tunes target ratio.
+        ratio = opt_rows["tokens_trained"].values / opt_rows["effective_params"].values
+        fig, ax = plt.subplots(1, 1, figsize=(6.5, 5))
+        ax.semilogx(opt_rows["flops_budget"], ratio, "o-", markersize=10)
+        ax.axhline(20, ls=":", color="gray", label="Chinchilla (D/N=20)")
+        ax.set_xlabel("compute $C$ (FLOPs)")
+        ax.set_ylabel(r"compute-optimal $D^* / N^*$")
+        ax.set_title("Token:param ratio along the compute-optimal frontier")
+        ax.legend()
+        ax.grid(True, which="both", alpha=0.3)
+        _save(fig, "token_param_ratio")
+        fit_summary["token_param_ratio"] = list(map(float, ratio))
 
     # JSON-safe
     def _clean(o):
