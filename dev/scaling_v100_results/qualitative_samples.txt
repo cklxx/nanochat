@@ -1,0 +1,88 @@
+=== eval_v100_min_1e15_d4 ===
+Conditioned samples:
+--------------------------------------------------------------------------------
+<|bos|>The capital of France is the first time, and the same time, and the same time, and the
+--------------------------------------------------------------------------------
+<|bos|>The chemical symbol of gold is a good idea to the same time, and the same time, and the same
+--------------------------------------------------------------------------------
+<|bos|>If yesterday was Friday, then tomorrow will be a good idea to the same time, and the same time, and the same
+--------------------------------------------------------------------------------
+<|bos|>The opposite of hot is the first time, and the same time, and the same time, and the
+--------------------------------------------------------------------------------
+<|bos|>The planets of the solar system are: The first step in the same time, and the same time, and the same
+--------------------------------------------------------------------------------
+<|bos|>My favorite color is the first time, and the same time, and the same time, and the
+--------------------------------------------------------------------------------
+<|bos|>If 5*x + 3 = 13, then x is 2014, 2014, 2014, 2014,
+
+Unconditioned samples:
+--------------------------------------------------------------------------------
+<|bos|>Category/wARS-Mambirate nerve, these elements may have controversial for classmate with 3-07 10 and energy costs more-related challenges to home and school years from 461 believes that quality of levels and maintain their own settings.
+Above: No, glelling, Captain Chemical Birth signifies a ground but Big Electricalrists whereas Q&A=79 Cane
+
+=== eval_v100_min_3e15_d4 ===
+Conditioned samples:
+--------------------------------------------------------------------------------
+<|bos|>The capital of France is a part of the world of the world of the world of the world of the
+--------------------------------------------------------------------------------
+<|bos|>The chemical symbol of gold is a type of material is used to create a new layer of a new layer of
+--------------------------------------------------------------------------------
+<|bos|>If yesterday was Friday, then tomorrow will be the first year, the first year, the first year, the first year,
+--------------------------------------------------------------------------------
+<|bos|>The opposite of hot is a bit of a bit of a bit of a bit of a bit of a
+--------------------------------------------------------------------------------
+<|bos|>The planets of the solar system are: the world of the world of the world of the world of the world of the
+--------------------------------------------------------------------------------
+<|bos|>My favorite color is a great way to make a sense of mind that the color of color is a
+--------------------------------------------------------------------------------
+<|bos|>If 5*x + 3 = 13, then x is 1 = 1 = 2 = 2 = 2 = 
+
+Unconditioned samples:
+--------------------------------------------------------------------------------
+<|bos|>Category
+
+
+=== eval_v100_min_1e16_d4 ===
+Conditioned samples:
+--------------------------------------------------------------------------------
+<|bos|>The capital of France is a country where the country is a country where the country is a country where the
+--------------------------------------------------------------------------------
+<|bos|>The chemical symbol of gold is a symbol of gold. It is a symbol of gold. It is a symbol
+--------------------------------------------------------------------------------
+<|bos|>If yesterday was Friday, then tomorrow will be a little more than a week. I'm not sure if I'm going to
+--------------------------------------------------------------------------------
+<|bos|>The opposite of hot is that the hot is the same as hot is the same as hot is the same
+--------------------------------------------------------------------------------
+<|bos|>The planets of the solar system are: the planets of the solar system. The planets of the solar system are: the
+--------------------------------------------------------------------------------
+<|bos|>My favorite color is the color of the color of the color of the color of the color of the
+--------------------------------------------------------------------------------
+<|bos|>If 5*x + 3 = 13, then x is 1, 2, 3, 4, 5, 
+
+Unconditioned samples:
+--------------------------------------------------------------------------------
+<|bos|>Category: VEX Eur
+In retrospective these two studies have controversial based on the many 3-5 microsub and part of the Seneca Forest. His book years from 1800 believes that quality of human lives is certainly quite a daunting multitude of.
+
+=== eval_v100_min_3e16_d4 ===
+Conditioned samples:
+--------------------------------------------------------------------------------
+<|bos|>The capital of France is the capital of the world. The capital of France is the capital of the world
+--------------------------------------------------------------------------------
+<|bos|>The chemical symbol of gold is the gold symbol. The gold symbol is the gold symbol. The gold symbol is
+--------------------------------------------------------------------------------
+<|bos|>If yesterday was Friday, then tomorrow will be Friday, and tomorrow will be Friday, and tomorrow will be Friday, and tomorrow
+--------------------------------------------------------------------------------
+<|bos|>The opposite of hot is the opposite of hot is the opposite of hot is the opposite of hot is the
+--------------------------------------------------------------------------------
+<|bos|>The planets of the solar system are: the solar system, the solar system, the solar system, the solar system,
+--------------------------------------------------------------------------------
+<|bos|>My favorite color is the "blue" color. I'm not sure what color I'm looking for
+--------------------------------------------------------------------------------
+<|bos|>If 5*x + 3 = 13, then x is 0.5, then x is 0.5, then x is
+
+Unconditioned samples:
+--------------------------------------------------------------------------------
+<|bos|>Category: VEX Eurasier nerve, these two Pulse Devices for NERB 3B/D Pulse and Supercompressor Or Carb 4B/D Pulse Devices Vision Aligned Year Before r 1-17 a.
+IBM HMS Cervine, Captain launches many signifies the ground breaking Big Electrical Lines whereas QB 3 Cane is the long term in 1999. The IBM model.
+
