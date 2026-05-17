@@ -64,16 +64,19 @@ device_batch_for_depth() {
     fi
 }
 
-# Each entry is "flops:depth" — the order matters; we walk top-to-bottom.
-# d=4 frontier first (cheapest per FLOP), then sanity points at d=6/d=8 at
-# the largest budgets to confirm N* hasn't moved.
+# Each entry is "flops:depth". Strategy (from RECIPE.md): walk small
+# budgets first to confirm the trend, then commit to big-compute runs once
+# we know the slope. d=4 at 3e16 acts as a vocab-comparable baseline
+# against the previous (vocab=32K) sweep.
 SWEEP=(
-  "3e16:4"      # baseline with new vocab, comparable to previous best
-  "1e17:4"     # ~40 min, expected CORE ~ 0.10-0.13
-  "3e17:4"     # ~2 h, expected CORE ~ 0.15-0.18
-  "3e17:6"     # IsoFLOP sanity, new optimum may be larger now
-  "1e18:4"     # ~6 h, expected CORE > 0.20 if scaling holds
-  "1e18:6"     # alt depth at largest budget
+  "3e16:4"     # ~13 min — vocab=8K baseline vs old sweep's d=4@3e16 (CORE +0.072)
+  "1e17:4"     # ~40 min — first compute step up
+  "1e17:6"     # ~40 min — does N* move once embedding is smaller?
+  "3e17:6"     # ~1.5 h — most informative mid-budget
+  "3e17:4"     # ~1.0 h — d=4 frontier at same budget
+  "1e18:6"     # ~5 h   — big push #1
+  "1e18:8"     # ~5 h   — big push #2, alt depth
+  "3e18:6"     # ~15 h  — final stretch ONLY if STOP not yet triggered
 )
 
 eval_core() {
