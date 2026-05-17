@@ -177,13 +177,13 @@ class Engine:
         """Same as generate, but does single prefill and then clones the KV cache."""
         assert isinstance(tokens, list) and isinstance(tokens[0], int), "expecting list of ints"
         device = self.model.get_device()
-        # NOTE: setting the dtype here and in this way is an ugly hack.
-        # Currently the repo assumes that cuda -> bfloat16 and everything else -> float32.
-        # We need to know the dtype here to call __init__ on KVCache and pre-allocate its tensors.
-        # As a quick hack, we're making generate() function inherit and know about this repo-wise assumption.
-        # I think there has to be a bigger refactor to deal with device/dtype tracking across the codebase.
-        # In particular, the KVCache should allocate its tensors lazily
-        dtype = torch.bfloat16 if device.type == "cuda" else torch.float32
+        # The KVCache must match the model's compute dtype so the SDPA fallback
+        # doesn't see a query/key dtype mismatch (e.g. fp16 q vs bf16 k_cache on
+        # V100, which has no bf16 tensor cores and runs the model in fp16).
+        # COMPUTE_DTYPE is the single source of truth — same env var the
+        # training script reads (NANOCHAT_DTYPE).
+        from nanochat.common import COMPUTE_DTYPE
+        dtype = COMPUTE_DTYPE if device.type == "cuda" else torch.float32
         rng = torch.Generator(device=device)
         rng.manual_seed(seed)
 
