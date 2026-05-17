@@ -6,6 +6,7 @@
 
 set -uo pipefail
 export OMP_NUM_THREADS=1
+export NANOCHAT_DTYPE="${NANOCHAT_DTYPE:-float16}"   # V100 tensor cores
 export NANOCHAT_BASE_DIR="${NANOCHAT_BASE_DIR:-$HOME/.cache/nanochat}"
 if [ -z "${NANOCHAT_DATA_DIR:-}" ] && [ -d "$NANOCHAT_BASE_DIR/base_data_clean" ]; then
     export NANOCHAT_DATA_DIR="$NANOCHAT_BASE_DIR/base_data_clean"

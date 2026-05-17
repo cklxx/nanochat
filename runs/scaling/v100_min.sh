@@ -3,15 +3,16 @@
 #
 # Why these settings:
 #   - V100 is SM 7.0: no FP8 (Hopper) and no bf16 tensor cores (Ampere+).
-#     nanochat's dtype autodetect therefore falls back to FP32 on V100, and
-#     FP16 is not supported because the loss path needs a GradScaler that
-#     isn't wired up. So this sweep runs in FP32 — slower per FLOP, but
-#     numerically clean.
+#     nanochat's autodetect would fall back to FP32. We override with
+#     NANOCHAT_DTYPE=float16 because V100 has *fp16 tensor cores*
+#     (~125 TFLOPS peak vs ~15 TFLOPS FP32) and the training loop already
+#     wires up `torch.amp.GradScaler()` whenever COMPUTE_DTYPE==float16.
+#     This is what lets the sweep finish on a single V100 in ~hours.
 #   - No Flash Attention 3 (Hopper-only). We force window_pattern=L so SDPA
 #     is used on a full-context causal mask (sliding-window fallback is much
 #     slower).
 #   - Single GPU --nproc_per_node=1, gradient accumulation is automatic.
-#   - We sweep depth in {4,6,8,10,12} at three IsoFLOP budgets to mirror the
+#   - We sweep depth in {4,6,8,10,12} at four IsoFLOP budgets to mirror the
 #     Chinchilla-style methodology used by the original runs/scaling_laws.sh,
 #     but with budgets ~3 orders of magnitude smaller so it actually finishes
 #     on one V100 within ~ a few hours.
@@ -47,17 +48,17 @@ DEPTHS=(4 6 8 10 12)
 # val_bpb at this scale, cheap enough not to dominate training time.
 EVAL_TOKENS=$((5 * 524288))
 
-# Single GPU on V100 has 32GB. FP32 doubles weight & activation memory vs bf16,
-# so we run more conservative per-device batch sizes.
+# Single GPU on V100 has 32GB. With FP16 activations, batches can be bigger.
 device_batch_for_depth() {
     local d=$1
-    if   [ "$d" -le 6  ]; then echo 8
-    elif [ "$d" -le 10 ]; then echo 4
-    else echo 2
+    if   [ "$d" -le 6  ]; then echo 16
+    elif [ "$d" -le 10 ]; then echo 8
+    else echo 4
     fi
 }
 
 export OMP_NUM_THREADS=1
+export NANOCHAT_DTYPE="${NANOCHAT_DTYPE:-float16}"   # V100 tensor cores
 export NANOCHAT_BASE_DIR="${NANOCHAT_BASE_DIR:-$HOME/.cache/nanochat}"
 # If a cleaned data dir exists, prefer it so training runs on the curated
 # corpus. Otherwise fall back to the raw shards.
@@ -85,7 +86,7 @@ cat > "$RESULTS_DIR/manifest.json" <<JSON
 {
   "label": "$LABEL",
   "gpu": "Tesla V100-SXM2-32GB (single)",
-  "compute_dtype": "fp32 (V100 SM 7.0 fallback; no bf16 tensor cores)",
+  "compute_dtype": "fp16 (NANOCHAT_DTYPE=float16; V100 tensor cores via GradScaler)",
   "window_pattern": "L",
   "flops_budgets": [$(IFS=,; echo "${FLOPS_BUDGETS[*]}")],
   "depths": [$(IFS=,; echo "${DEPTHS[*]}")],
