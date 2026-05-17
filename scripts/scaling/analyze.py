@@ -228,6 +228,57 @@ def main():
     print(f"wrote figures to {FIG_DIR}")
     print(f"wrote fits to {out_path}")
 
+    # ===== Optional: benchmark (CORE) plots if benchmarks.csv exists =====
+    bench_csv = os.path.join(RESULTS_DIR, "benchmarks", "benchmarks.csv")
+    if os.path.exists(bench_csv):
+        bdf = pd.read_csv(bench_csv)
+        bdf["core_metric"] = pd.to_numeric(bdf["core_metric"], errors="coerce")
+        bdf = bdf.dropna(subset=["core_metric"]).copy()
+        bdf["flops_budget"] = bdf["flops_budget"].astype(float)
+        # join in effective_params from main df
+        bdf = bdf.merge(
+            df[["flops_budget", "depth", "effective_params", "params_total", "tokens_trained"]],
+            on=["flops_budget", "depth"], how="left")
+
+        # CORE vs compute, one trace per depth
+        fig, ax = plt.subplots(1, 1, figsize=(7, 5))
+        for d in sorted(bdf["depth"].unique()):
+            sub = bdf[bdf["depth"] == d].sort_values("flops_budget")
+            ax.semilogx(sub["flops_budget"], sub["core_metric"], "o-",
+                        label=f"depth={d}", markersize=8)
+        ax.axhline(0, ls=":", color="gray", label="random baseline (centered)")
+        ax.axhline(0.2565, ls="--", color="gray", alpha=0.7, label="GPT-2 (1.6B)")
+        ax.set_xlabel("training compute $C$ (FLOPs)")
+        ax.set_ylabel("DCLM CORE metric (centered)")
+        ax.set_title("Capability emergence vs compute (V100 minimum-scale runs)")
+        ax.legend(loc="best", fontsize=9)
+        ax.grid(True, which="both", alpha=0.3)
+        _save(fig, "core_vs_compute")
+
+        # CORE vs params, one trace per budget
+        fig, ax = plt.subplots(1, 1, figsize=(7, 5))
+        for c in sorted(bdf["flops_budget"].unique()):
+            sub = bdf[bdf["flops_budget"] == c].sort_values("effective_params")
+            ax.semilogx(sub["effective_params"], sub["core_metric"], "o-",
+                        label=f"C={c:.0e}", markersize=8)
+        ax.axhline(0, ls=":", color="gray")
+        ax.set_xlabel("effective parameters $N$")
+        ax.set_ylabel("DCLM CORE metric (centered)")
+        ax.set_title("CORE vs $N$ at fixed compute")
+        ax.legend(loc="best", fontsize=9)
+        ax.grid(True, which="both", alpha=0.3)
+        _save(fig, "core_vs_params")
+
+        fit_summary["benchmark_summary"] = {
+            "n_evaluated": int(len(bdf)),
+            "best_core": float(bdf["core_metric"].max()),
+            "best_core_row": _clean(bdf.loc[bdf["core_metric"].idxmax()].to_dict()),
+            "mean_core": float(bdf["core_metric"].mean()),
+        }
+        with open(out_path, "w") as f:
+            json.dump(_clean(fit_summary), f, indent=2)
+        print(f"wrote benchmark plots to {FIG_DIR} and refreshed {out_path}")
+
 
 if __name__ == "__main__":
     main()
