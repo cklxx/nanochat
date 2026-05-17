@@ -387,18 +387,22 @@ class RustBPETokenizer:
 # -----------------------------------------------------------------------------
 # nanochat-specific convenience functions
 
-def get_tokenizer():
+def _tokenizer_dir():
+    """Resolve tokenizer dir, honoring NANOCHAT_TOKENIZER_DIR env override."""
     from nanochat.common import get_base_dir
-    base_dir = get_base_dir()
-    tokenizer_dir = os.path.join(base_dir, "tokenizer")
+    override = os.environ.get("NANOCHAT_TOKENIZER_DIR")
+    if override:
+        return override
+    return os.path.join(get_base_dir(), "tokenizer")
+
+def get_tokenizer():
+    tokenizer_dir = _tokenizer_dir()
     # return HuggingFaceTokenizer.from_directory(tokenizer_dir)
     return RustBPETokenizer.from_directory(tokenizer_dir)
 
 def get_token_bytes(device="cpu"):
     import torch
-    from nanochat.common import get_base_dir
-    base_dir = get_base_dir()
-    tokenizer_dir = os.path.join(base_dir, "tokenizer")
+    tokenizer_dir = _tokenizer_dir()
     token_bytes_path = os.path.join(tokenizer_dir, "token_bytes.pt")
     assert os.path.exists(token_bytes_path), f"Token bytes not found at {token_bytes_path}? It gets written by tok_train.py"
     with open(token_bytes_path, "rb") as f:
