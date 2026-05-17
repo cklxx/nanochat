@@ -53,6 +53,11 @@ device_batch_for_depth() {
 
 export OMP_NUM_THREADS=1
 export NANOCHAT_BASE_DIR="${NANOCHAT_BASE_DIR:-$HOME/.cache/nanochat}"
+# If a cleaned data dir exists, prefer it so training runs on the curated
+# corpus. Otherwise fall back to the raw shards.
+if [ -z "${NANOCHAT_DATA_DIR:-}" ] && [ -d "$NANOCHAT_BASE_DIR/base_data_clean" ]; then
+    export NANOCHAT_DATA_DIR="$NANOCHAT_BASE_DIR/base_data_clean"
+fi
 
 # proxy (only used if env not already set)
 : "${http_proxy:=http://sys-proxy-rd-relay.byted.org:8118}"

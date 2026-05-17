@@ -46,6 +46,11 @@ python -m scripts.scaling.data_pipeline validate \
 
 All reports land under `$NANOCHAT_BASE_DIR/scaling_v100/data_report/`.
 
+Once `base_data_clean/` exists, the sweep script picks it up automatically
+through the `NANOCHAT_DATA_DIR` env var (a small backwards-compatible hook
+added in `nanochat/dataset.py`). The same tokenizer training and dataloader
+plug into the cleaned shards with no further changes.
+
 ## Run
 
 ```bash
