@@ -2,14 +2,19 @@
 # Minimum-scale scaling law validation on a single Tesla V100-SXM2-32GB.
 #
 # Why these settings:
-#   - V100 has no FP8 and no Flash Attention 3 (Hopper-only), so we run in bf16
-#     and force window_pattern=L. Sliding-window patterns fall back to SDPA
-#     which is dramatically slower on V100.
+#   - V100 is SM 7.0: no FP8 (Hopper) and no bf16 tensor cores (Ampere+).
+#     nanochat's dtype autodetect therefore falls back to FP32 on V100, and
+#     FP16 is not supported because the loss path needs a GradScaler that
+#     isn't wired up. So this sweep runs in FP32 — slower per FLOP, but
+#     numerically clean.
+#   - No Flash Attention 3 (Hopper-only). We force window_pattern=L so SDPA
+#     is used on a full-context causal mask (sliding-window fallback is much
+#     slower).
 #   - Single GPU --nproc_per_node=1, gradient accumulation is automatic.
-#   - We sweep depth in {4,6,8,10,12} at four IsoFLOP budgets to mirror the
+#   - We sweep depth in {4,6,8,10,12} at three IsoFLOP budgets to mirror the
 #     Chinchilla-style methodology used by the original runs/scaling_laws.sh,
 #     but with budgets ~3 orders of magnitude smaller so it actually finishes
-#     on one V100.
+#     on one V100 within ~ a few hours.
 #
 # Inputs:
 #   - $NANOCHAT_BASE_DIR must contain base_data_clean/ with at least
@@ -29,12 +34,12 @@ LABEL="v100_min"
 NPROC_PER_NODE="${NPROC_PER_NODE:-1}"
 WANDB_RUN="${WANDB_RUN:-dummy}"
 
-# IsoFLOP design (very small budgets so each fits on one V100):
+# IsoFLOP design (very small budgets so each fits on one V100 in FP32):
 FLOPS_BUDGETS=(
+    1e15
     3e15
     1e16
     3e16
-    1e17
 )
 DEPTHS=(4 6 8 10 12)
 
@@ -42,12 +47,13 @@ DEPTHS=(4 6 8 10 12)
 # val_bpb at this scale, cheap enough not to dominate training time.
 EVAL_TOKENS=$((5 * 524288))
 
-# Single GPU on V100 has 32GB. These are conservative.
+# Single GPU on V100 has 32GB. FP32 doubles weight & activation memory vs bf16,
+# so we run more conservative per-device batch sizes.
 device_batch_for_depth() {
     local d=$1
-    if   [ "$d" -le 6  ]; then echo 16
-    elif [ "$d" -le 10 ]; then echo 8
-    else echo 4
+    if   [ "$d" -le 6  ]; then echo 8
+    elif [ "$d" -le 10 ]; then echo 4
+    else echo 2
     fi
 }
 
@@ -79,7 +85,7 @@ cat > "$RESULTS_DIR/manifest.json" <<JSON
 {
   "label": "$LABEL",
   "gpu": "Tesla V100-SXM2-32GB (single)",
-  "compute_dtype": "bf16",
+  "compute_dtype": "fp32 (V100 SM 7.0 fallback; no bf16 tensor cores)",
   "window_pattern": "L",
   "flops_budgets": [$(IFS=,; echo "${FLOPS_BUDGETS[*]}")],
   "depths": [$(IFS=,; echo "${DEPTHS[*]}")],
