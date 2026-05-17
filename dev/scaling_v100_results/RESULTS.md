@@ -84,8 +84,75 @@ attention (`L`) keeps SDPA fast.
 
 ## 4. Results
 
-> Filled in by `scripts/scaling/analyze.py` after the sweep finishes:
-> see `results.csv`, `fit_summary.json`, and `figures/`.
+All 20 IsoFLOP runs completed on a single V100 in ~3 hours wallclock.
+Full per-run table in `results.csv` and fits in `fit_summary.json`.
+
+### Loss vs compute (compute-optimal frontier)
+
+| C (FLOPs) | best run | val_bpb | tokens | eff. params N |
+|---:|:--|---:|---:|---:|
+| 1e15 | d=4 | **1.821** | 10.5M  | 11.5M |
+| 3e15 | d=4 | **1.534** | 31.7M  | 11.5M |
+| 1e16 | d=4 | **1.165** | 105.9M | 11.5M |
+| 3e16 | d=4 | **1.081** | 318.0M | 11.5M |
+
+Power-law fit on the empirical frontier:
+
+$$
+L(C) \;=\; A \cdot C^{-\alpha_L}, \qquad \alpha_L = 0.168, \;\; R^2 = 0.976
+$$
+
+→ across 30× compute, val_bpb dropped 1.821 → 1.081 (–41 %).
+
+### IsoFLOP optima (Hoffmann-style quadratic-in-log fit)
+
+At budgets large enough for the IsoFLOP curve to bend (3e15 and 3e16), the
+parabolic minimum sits at:
+
+| C (FLOPs) | N* (eff. params) | val_bpb* (fit) |
+|---:|---:|---:|
+| 3e15 | 1.48 × 10⁷ | 1.567 |
+| 3e16 | 1.50 × 10⁷ | 1.062 |
+
+At 1e15 and 1e16 the curves are still monotone in N (we're below the
+optimum), so the empirical minimum is at our smallest depth (d=4).
+
+### Compute-optimal data scaling
+
+$$
+D^*(C) \propto C^{1.00}, \qquad R^2 = 0.99996
+$$
+
+→ at our scale, *almost all* extra compute goes into more tokens, not
+larger models. This is consistent with the embedding-overhead floor:
+N saturates at the smallest model in the sweep that the parabola permits.
+
+### Token : parameter ratio along the frontier
+
+| C (FLOPs) | D* / N* |
+|---:|---:|
+| 1e15 | 0.91 (heavily under-trained) |
+| 3e15 | 2.14 |
+| 1e16 | 9.18 |
+| 3e16 | **21.23** ← brackets Chinchilla = 20 |
+
+This is the cleanest minimum-scale validation we get: even with a tiny
+~$10^7$-param model on one V100, the empirically compute-optimal training
+shifts from severe under-training at $10^{15}$ FLOPs to right at
+Chinchilla's $D/N \approx 20$ by $3 \times 10^{16}$.
+
+### Figures (PNG + PDF)
+
+All in `figures/`:
+
+- `isoflop.png` — five depths × four budgets, with quadratic-in-log fits
+  and the fitted optima (☆) at 3e15 and 3e16.
+- `loss_vs_compute.png` — the L(C) power law fit on the frontier.
+- `optimal_N_vs_C.png` — N*(C) is essentially flat (R² = 0.21);
+  the embedding-overhead floor dominates at this scale.
+- `optimal_D_vs_C.png` — D*(C) tracks compute linearly.
+- `token_param_ratio.png` — D*/N* climbs from ~1 to ~21 across the four
+  budgets, hitting Chinchilla.
 
 | compute (FLOPs) | depth | params_total | tokens | val_bpb |
 |---|---|---|---|---|
