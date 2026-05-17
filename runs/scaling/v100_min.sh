@@ -33,7 +33,11 @@ set -uo pipefail
 
 LABEL="v100_min"
 NPROC_PER_NODE="${NPROC_PER_NODE:-1}"
-WANDB_RUN="${WANDB_RUN:-dummy}"
+# We log only to local CSV/log files; wandb is intentionally disabled to keep
+# the sweep self-contained. The training script treats run=="dummy" as
+# "use DummyWandb", which short-circuits wandb.init().
+WANDB_RUN="dummy"
+export WANDB_MODE="${WANDB_MODE:-disabled}"
 
 # IsoFLOP design (very small budgets so each fits on one V100 in FP32):
 FLOPS_BUDGETS=(
@@ -123,7 +127,7 @@ for flops in "${FLOPS_BUDGETS[@]}"; do
             --target-flops="$flops" \
             --target-param-data-ratio=-1 \
             --window-pattern="L" \
-            --run="${WANDB_RUN}_${TAG}" \
+            --run="${WANDB_RUN}" \
             --model-tag="$TAG" \
             --eval-tokens="$EVAL_TOKENS" \
             --core-metric-every=-1 \
