@@ -203,6 +203,68 @@ stay near random.
   of *both* parameters and training tokens, and our smallest scale is
   well below the typical emergence regime.
 
+## 6. v2 sweep — chasing CORE ≥ 0.20 with vocab=8K
+
+After the v1 sweep, the user asked for the **minimum-emergence** scale,
+defined as CORE ≥ 0.20 (~80 % of GPT-2 1.6B's 0.256). The hypothesis was
+that the v1 sweep's IsoFLOP optimum was locked at N ≈ 11.5 M because the
+32K-vocab embedding dominated the parameter budget; shrinking the vocab
+should let bigger models become compute-optimal. See `RECIPE.md` for the
+research that informed the decisions.
+
+**Changes vs v1:**
+
+| | v1 | v2 |
+|---|---|---|
+| tokenizer vocab | 32 K | **8 K** (`tokenizer_v8k/`) |
+| embed:transformer ratio at d=4 | 8 : 1 | **2 : 1** |
+| data corpus | 7 train shards (~440 M tokens) | 7 → 22 train shards in progress |
+| hyperparameters | nanochat defaults | nanochat defaults (unchanged) |
+| sweep schedule | 5 depths × 4 budgets dense | progressive `(depth, FLOPs)` probe, stop at CORE ≥ 0.20 |
+
+### v2 partial results (4 / 8 runs, single V100, ~5 h elapsed)
+
+| C (FLOPs) | depth | val_bpb | CORE | epochs of data |
+|---:|---:|---:|---:|---:|
+| 3e16 | 4 | 1.114 | +0.050 | 1.2 |
+| 1e17 | 4 | 1.092 | +0.044 | 4.0 |
+| **1e17** | **6** | **1.014** | **+0.075** | 1.6 |
+| 3e17 | 6 | 0.989 | +0.077 | 4.9 |
+
+**Two findings before pausing the queue:**
+
+1. **The vocab shrink worked — partially.** At fixed 1e17 FLOPs, switching
+   from d=4 → d=6 dropped val_bpb 1.092 → 1.014 and bumped CORE 0.044 →
+   0.075 (+70 %). The IsoFLOP optimum did move to a larger model exactly
+   as RECIPE.md predicted.
+
+2. **CORE saturated at +0.077.** Going 1e17 → 3e17 (3 × compute) on d=6
+   only dropped val_bpb 1.014 → 0.989 (–2.5 %) and CORE was unchanged.
+   The local L(C) slope is only **–0.052** vs the v1 best-fit's –0.168,
+   because at 3e17 d=6 we ran **5 epochs of the same 440 M-token
+   corpus** — multi-epoch overtraining is now the bottleneck.
+
+**Course correction (in flight):**
+
+- Killed the queued 3e17 d=4 (would have been 13 epochs, hopeless).
+- Started a parallel download of 20 + extra ClimbMix shards into
+  `base_data_climbmix_extra/` (proxy is slow; ~2/40 done at the time of
+  writing).
+- Wrote `runs/scaling/v100_emerge_final.sh` to (a) clean & merge new
+  shards while pinning the original val shard as `shard_99999.parquet`,
+  then (b) run **1 e18 FLOPs at d=8** as the final big push. With ~20
+  more shards this becomes ~4 epochs rather than the 13 it would be on
+  the v1 data slice.
+- Remaining budget: ~19 h of the 24-h cap. 1 e18 d=8 needs ≈ 5 h.
+
+**Projected vs achievable CORE at 1e18:** the v1 L(C) extrapolation said
+~0.20, but the v2 d=6 local slope says ~0.10. The truth is somewhere in
+between — the bigger d=8 model + larger corpus should escape the
+multi-epoch plateau, but we can no longer promise to clear 0.20 inside
+24 V100-hours. If the final run lands at 0.10 – 0.15, the writeup will
+report the compute gap explicitly (likely 2 – 4 × more V100-hours, or a
+move to multi-GPU A100/H100).
+
 | compute (FLOPs) | depth | params_total | tokens | val_bpb |
 |---|---|---|---|---|
 | … | … | … | … | … |
