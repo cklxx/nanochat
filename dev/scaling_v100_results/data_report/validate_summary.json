@@ -1,12 +1,12 @@
 {
   "raw_docs": 592896,
-  "clean_docs": 586424,
-  "kept_fraction": 0.9890840889464594,
+  "clean_docs": 3927615,
+  "kept_fraction": 6.624458589702073,
   "raw_chars": 1761954831,
-  "clean_chars": 1746514832,
-  "char_kept_fraction": 0.9912370063475254,
+  "clean_chars": 11659717836,
+  "char_kept_fraction": 6.617489637564948,
   "letter_ratio_raw": 0.9888424784253775,
-  "letter_ratio_clean": 0.9890879760814093,
+  "letter_ratio_clean": 0.989088397071611,
   "prefix_dup_rate_raw": 0.00015685718911917097,
   "prefix_dup_rate_clean": 0.0
 }

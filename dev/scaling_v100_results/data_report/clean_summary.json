@@ -1,5 +1,5 @@
 {
-  "in_dir": "/home/chenkailun.c/.cache/nanochat/base_data_climbmix",
+  "in_dir": "/home/chenkailun.c/.cache/nanochat/base_data_climbmix_extra",
   "out_dir": "/home/chenkailun.c/.cache/nanochat/base_data_clean",
   "filters": {
     "MIN_CHARS": 200,
@@ -10,116 +10,542 @@
     "PREFIX_HASH_LEN": 256
   },
   "totals": {
-    "ok": 670854,
-    "too_short": 6822,
-    "awl_high": 121,
-    "too_long": 49,
-    "dup_prefix": 468,
-    "letter_ratio_low": 42
+    "ok": 3350314,
+    "too_short": 33864,
+    "too_long": 315,
+    "awl_high": 584,
+    "dup_prefix": 9123,
+    "letter_ratio_low": 257,
+    "awl_low": 10
   },
   "per_shard": [
     {
-      "file": "shard_00001.parquet",
-      "in_docs": 86022,
-      "kept": 85100,
+      "file": "shard_00011.parquet",
+      "in_docs": 83978,
+      "kept": 83141,
       "rejected": {
-        "ok": 85106,
+        "ok": 83151,
+        "too_short": 790,
+        "too_long": 12,
+        "awl_high": 13,
+        "dup_prefix": 10,
+        "letter_ratio_low": 2
+      }
+    },
+    {
+      "file": "shard_00012.parquet",
+      "in_docs": 83997,
+      "kept": 83108,
+      "rejected": {
+        "ok": 83137,
+        "too_short": 798,
+        "dup_prefix": 29,
+        "awl_high": 17,
+        "too_long": 9,
+        "letter_ratio_low": 7
+      }
+    },
+    {
+      "file": "shard_00013.parquet",
+      "in_docs": 85028,
+      "kept": 84041,
+      "rejected": {
+        "ok": 84077,
         "too_short": 879,
-        "awl_high": 22,
+        "awl_high": 17,
+        "letter_ratio_low": 8,
+        "dup_prefix": 36,
+        "too_long": 10,
+        "awl_low": 1
+      }
+    },
+    {
+      "file": "shard_00014.parquet",
+      "in_docs": 85044,
+      "kept": 84031,
+      "rejected": {
+        "ok": 84083,
+        "too_short": 879,
+        "awl_high": 17,
+        "dup_prefix": 52,
+        "too_long": 8,
+        "letter_ratio_low": 4,
+        "awl_low": 1
+      }
+    },
+    {
+      "file": "shard_00015.parquet",
+      "in_docs": 85055,
+      "kept": 84029,
+      "rejected": {
+        "ok": 84092,
+        "too_short": 873,
+        "letter_ratio_low": 6,
+        "too_long": 10,
+        "dup_prefix": 63,
+        "awl_high": 11
+      }
+    },
+    {
+      "file": "shard_00016.parquet",
+      "in_docs": 85058,
+      "kept": 84019,
+      "rejected": {
+        "ok": 84085,
+        "too_short": 874,
+        "dup_prefix": 66,
+        "awl_high": 21,
         "too_long": 6,
-        "dup_prefix": 6,
+        "letter_ratio_low": 6
+      }
+    },
+    {
+      "file": "shard_00017.parquet",
+      "in_docs": 85089,
+      "kept": 84021,
+      "rejected": {
+        "ok": 84118,
+        "dup_prefix": 97,
+        "too_short": 843,
+        "awl_high": 18,
+        "too_long": 9,
+        "letter_ratio_low": 4
+      }
+    },
+    {
+      "file": "shard_00018.parquet",
+      "in_docs": 85099,
+      "kept": 84005,
+      "rejected": {
+        "ok": 84112,
+        "too_short": 851,
+        "letter_ratio_low": 6,
+        "dup_prefix": 107,
+        "too_long": 5,
+        "awl_high": 18
+      }
+    },
+    {
+      "file": "shard_00019.parquet",
+      "in_docs": 84078,
+      "kept": 82990,
+      "rejected": {
+        "ok": 83100,
+        "too_short": 839,
+        "dup_prefix": 110,
+        "letter_ratio_low": 9,
+        "too_long": 7,
+        "awl_high": 13
+      }
+    },
+    {
+      "file": "shard_00020.parquet",
+      "in_docs": 86147,
+      "kept": 84946,
+      "rejected": {
+        "ok": 85077,
+        "too_short": 915,
+        "dup_prefix": 131,
+        "awl_high": 10,
+        "too_long": 4,
+        "letter_ratio_low": 9,
+        "awl_low": 1
+      }
+    },
+    {
+      "file": "shard_00021.parquet",
+      "in_docs": 85149,
+      "kept": 83960,
+      "rejected": {
+        "ok": 84117,
+        "too_short": 844,
+        "dup_prefix": 157,
+        "too_long": 8,
+        "letter_ratio_low": 6,
+        "awl_high": 17
+      }
+    },
+    {
+      "file": "shard_00022.parquet",
+      "in_docs": 86149,
+      "kept": 84990,
+      "rejected": {
+        "ok": 85123,
+        "too_short": 868,
+        "dup_prefix": 133,
+        "too_long": 6,
+        "letter_ratio_low": 5,
+        "awl_high": 14
+      }
+    },
+    {
+      "file": "shard_00023.parquet",
+      "in_docs": 85145,
+      "kept": 83927,
+      "rejected": {
+        "ok": 84080,
+        "too_short": 880,
+        "dup_prefix": 153,
+        "awl_high": 19,
+        "too_long": 7,
+        "letter_ratio_low": 5,
+        "awl_low": 1
+      }
+    },
+    {
+      "file": "shard_00024.parquet",
+      "in_docs": 85173,
+      "kept": 83928,
+      "rejected": {
+        "ok": 84109,
+        "too_short": 856,
+        "dup_prefix": 181,
+        "too_long": 8,
+        "awl_high": 11,
+        "letter_ratio_low": 8
+      }
+    },
+    {
+      "file": "shard_00025.parquet",
+      "in_docs": 85140,
+      "kept": 83980,
+      "rejected": {
+        "ok": 84128,
+        "too_short": 837,
+        "dup_prefix": 148,
+        "awl_high": 13,
+        "too_long": 4,
+        "letter_ratio_low": 9,
+        "awl_low": 1
+      }
+    },
+    {
+      "file": "shard_00026.parquet",
+      "in_docs": 85167,
+      "kept": 83918,
+      "rejected": {
+        "ok": 84093,
+        "too_short": 874,
+        "dup_prefix": 175,
+        "too_long": 8,
+        "awl_high": 14,
         "letter_ratio_low": 3
       }
     },
     {
-      "file": "shard_00002.parquet",
-      "in_docs": 85019,
-      "kept": 84166,
+      "file": "shard_00027.parquet",
+      "in_docs": 84174,
+      "kept": 82898,
       "rejected": {
-        "ok": 84193,
-        "too_short": 780,
-        "dup_prefix": 27,
+        "ok": 83104,
+        "too_short": 838,
+        "dup_prefix": 206,
+        "too_long": 7,
+        "awl_high": 12,
+        "letter_ratio_low": 7
+      }
+    },
+    {
+      "file": "shard_00028.parquet",
+      "in_docs": 85206,
+      "kept": 83897,
+      "rejected": {
+        "ok": 84111,
+        "too_short": 848,
+        "letter_ratio_low": 7,
+        "dup_prefix": 214,
+        "too_long": 9,
+        "awl_high": 17
+      }
+    },
+    {
+      "file": "shard_00029.parquet",
+      "in_docs": 84206,
+      "kept": 82878,
+      "rejected": {
+        "ok": 83116,
+        "dup_prefix": 238,
+        "too_short": 817,
+        "too_long": 14,
+        "letter_ratio_low": 11,
+        "awl_high": 10
+      }
+    },
+    {
+      "file": "shard_00030.parquet",
+      "in_docs": 85234,
+      "kept": 83856,
+      "rejected": {
+        "ok": 84098,
+        "too_short": 869,
+        "dup_prefix": 242,
+        "awl_high": 11,
+        "too_long": 8,
+        "letter_ratio_low": 6
+      }
+    },
+    {
+      "file": "shard_00031.parquet",
+      "in_docs": 84229,
+      "kept": 82832,
+      "rejected": {
+        "ok": 83093,
+        "too_short": 842,
+        "dup_prefix": 261,
+        "letter_ratio_low": 7,
+        "too_long": 14,
+        "awl_high": 12
+      }
+    },
+    {
+      "file": "shard_00032.parquet",
+      "in_docs": 85262,
+      "kept": 83874,
+      "rejected": {
+        "ok": 84144,
+        "too_short": 829,
+        "dup_prefix": 270,
         "awl_high": 11,
         "too_long": 5,
         "letter_ratio_low": 3
       }
     },
     {
-      "file": "shard_00003.parquet",
-      "in_docs": 84006,
-      "kept": 83045,
+      "file": "shard_00033.parquet",
+      "in_docs": 85255,
+      "kept": 83822,
       "rejected": {
-        "ok": 83083,
+        "ok": 84085,
+        "too_short": 882,
+        "dup_prefix": 263,
+        "awl_high": 13,
+        "too_long": 7,
+        "awl_low": 1,
+        "letter_ratio_low": 4
+      }
+    },
+    {
+      "file": "shard_00034.parquet",
+      "in_docs": 86264,
+      "kept": 84889,
+      "rejected": {
+        "ok": 85137,
+        "too_short": 855,
+        "dup_prefix": 248,
+        "awl_high": 20,
+        "too_long": 2,
+        "letter_ratio_low": 2
+      }
+    },
+    {
+      "file": "shard_00035.parquet",
+      "in_docs": 84263,
+      "kept": 82814,
+      "rejected": {
+        "ok": 83109,
+        "dup_prefix": 295,
+        "too_short": 822,
+        "too_long": 8,
+        "letter_ratio_low": 9,
+        "awl_high": 20
+      }
+    },
+    {
+      "file": "shard_00036.parquet",
+      "in_docs": 84239,
+      "kept": 82804,
+      "rejected": {
+        "ok": 83075,
+        "too_short": 860,
+        "dup_prefix": 271,
+        "awl_high": 17,
+        "letter_ratio_low": 7,
+        "too_long": 8,
+        "awl_low": 1
+      }
+    },
+    {
+      "file": "shard_00037.parquet",
+      "in_docs": 84266,
+      "kept": 82789,
+      "rejected": {
+        "ok": 83087,
+        "dup_prefix": 298,
+        "too_long": 14,
+        "too_short": 849,
+        "awl_high": 12,
+        "letter_ratio_low": 6
+      }
+    },
+    {
+      "file": "shard_00038.parquet",
+      "in_docs": 85283,
+      "kept": 83859,
+      "rejected": {
+        "ok": 84150,
+        "too_short": 825,
+        "dup_prefix": 291,
+        "awl_high": 9,
+        "too_long": 3,
+        "letter_ratio_low": 5
+      }
+    },
+    {
+      "file": "shard_00039.parquet",
+      "in_docs": 85285,
+      "kept": 83862,
+      "rejected": {
+        "ok": 84155,
+        "too_short": 804,
+        "dup_prefix": 293,
+        "letter_ratio_low": 11,
+        "awl_high": 16,
+        "too_long": 6
+      }
+    },
+    {
+      "file": "shard_00040.parquet",
+      "in_docs": 84299,
+      "kept": 82734,
+      "rejected": {
+        "ok": 83065,
+        "too_short": 873,
+        "dup_prefix": 331,
+        "awl_high": 14,
+        "too_long": 9,
+        "letter_ratio_low": 7
+      }
+    },
+    {
+      "file": "shard_00041.parquet",
+      "in_docs": 85342,
+      "kept": 83810,
+      "rejected": {
+        "ok": 84160,
+        "dup_prefix": 350,
+        "letter_ratio_low": 7,
+        "too_short": 803,
+        "too_long": 9,
+        "awl_high": 13
+      }
+    },
+    {
+      "file": "shard_00042.parquet",
+      "in_docs": 84280,
+      "kept": 82777,
+      "rejected": {
+        "ok": 83089,
         "too_short": 857,
-        "dup_prefix": 38,
+        "dup_prefix": 312,
+        "awl_high": 11,
+        "letter_ratio_low": 3,
+        "awl_low": 1,
+        "too_long": 7
+      }
+    },
+    {
+      "file": "shard_00043.parquet",
+      "in_docs": 84329,
+      "kept": 82706,
+      "rejected": {
+        "ok": 83067,
+        "too_short": 877,
+        "dup_prefix": 361,
+        "awl_high": 14,
+        "too_long": 7,
+        "letter_ratio_low": 3
+      }
+    },
+    {
+      "file": "shard_00044.parquet",
+      "in_docs": 85365,
+      "kept": 83747,
+      "rejected": {
+        "ok": 84120,
+        "too_short": 842,
+        "dup_prefix": 373,
+        "awl_high": 14,
+        "letter_ratio_low": 8,
+        "too_long": 6,
+        "awl_low": 2
+      }
+    },
+    {
+      "file": "shard_00045.parquet",
+      "in_docs": 83280,
+      "kept": 81721,
+      "rejected": {
+        "ok": 82057,
+        "too_short": 853,
+        "dup_prefix": 336,
+        "too_long": 15,
+        "letter_ratio_low": 8,
+        "awl_high": 11
+      }
+    },
+    {
+      "file": "shard_00046.parquet",
+      "in_docs": 85384,
+      "kept": 83745,
+      "rejected": {
+        "ok": 84137,
+        "too_short": 828,
+        "dup_prefix": 392,
+        "awl_high": 17,
         "too_long": 5,
-        "awl_high": 15,
+        "letter_ratio_low": 5
+      }
+    },
+    {
+      "file": "shard_00047.parquet",
+      "in_docs": 84359,
+      "kept": 82718,
+      "rejected": {
+        "ok": 83109,
+        "too_short": 824,
+        "dup_prefix": 391,
+        "awl_high": 17,
+        "too_long": 10,
         "letter_ratio_low": 8
       }
     },
     {
-      "file": "shard_00004.parquet",
-      "in_docs": 84030,
-      "kept": 83057,
+      "file": "shard_00048.parquet",
+      "in_docs": 85423,
+      "kept": 83675,
       "rejected": {
-        "ok": 83119,
-        "too_short": 820,
-        "dup_prefix": 62,
-        "awl_high": 15,
-        "too_long": 8,
-        "letter_ratio_low": 6
-      }
-    },
-    {
-      "file": "shard_00005.parquet",
-      "in_docs": 85065,
-      "kept": 84026,
-      "rejected": {
-        "ok": 84099,
-        "too_short": 872,
-        "dup_prefix": 73,
-        "awl_high": 12,
-        "letter_ratio_low": 6,
-        "too_long": 3
-      }
-    },
-    {
-      "file": "shard_00008.parquet",
-      "in_docs": 84051,
-      "kept": 83004,
-      "rejected": {
-        "ok": 83087,
-        "too_short": 852,
-        "dup_prefix": 83,
-        "awl_high": 16,
-        "too_long": 7,
-        "letter_ratio_low": 6
-      }
-    },
-    {
-      "file": "shard_00009.parquet",
-      "in_docs": 85079,
-      "kept": 84026,
-      "rejected": {
-        "ok": 84113,
-        "too_short": 851,
-        "dup_prefix": 87,
+        "too_short": 855,
+        "ok": 84106,
+        "dup_prefix": 431,
         "awl_high": 18,
-        "too_long": 5,
-        "letter_ratio_low": 5
+        "letter_ratio_low": 8,
+        "too_long": 5
       }
     },
     {
-      "file": "shard_00010.parquet",
-      "in_docs": 85084,
-      "kept": 83962,
+      "file": "shard_00049.parquet",
+      "in_docs": 85380,
+      "kept": 83788,
       "rejected": {
-        "ok": 84054,
-        "too_short": 911,
-        "dup_prefix": 92,
-        "too_long": 10,
-        "awl_high": 12,
-        "letter_ratio_low": 5
+        "ok": 84176,
+        "dup_prefix": 388,
+        "too_short": 791,
+        "awl_high": 11,
+        "letter_ratio_low": 9,
+        "too_long": 5
+      }
+    },
+    {
+      "file": "shard_00050.parquet",
+      "in_docs": 83364,
+      "kept": 81662,
+      "rejected": {
+        "ok": 82082,
+        "too_short": 821,
+        "dup_prefix": 420,
+        "letter_ratio_low": 9,
+        "awl_high": 21,
+        "too_long": 11
       }
     }
   ]
