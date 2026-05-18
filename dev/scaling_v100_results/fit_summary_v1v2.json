@@ -1,0 +1,26 @@
+{
+  "v1_loss_fit": {
+    "slope": -0.16178154193413333,
+    "intercept": 2.6828097498833703,
+    "r2": 0.9758087688259645
+  },
+  "v2_loss_fit": {
+    "slope": -0.05595029084353455,
+    "intercept": 0.9657683535172561,
+    "r2": 0.9649431226119886
+  },
+  "v1_best_core": 0.0715,
+  "v2_best_core": 0.1187,
+  "v1_best_run": {
+    "flops_budget": 3e+16,
+    "depth": 4,
+    "val_bpb": 1.080807,
+    "core_metric": 0.0715
+  },
+  "v2_best_run": {
+    "flops_budget": 1e+18,
+    "depth": 8,
+    "val_bpb": 0.905404,
+    "core_metric": 0.1187
+  }
+}
