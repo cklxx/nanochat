@@ -1,0 +1,25 @@
+Conditioned samples:
+--------------------------------------------------------------------------------
+<|bos|>The capital of France is Paris, and the city of Paris is the capital of France. The
+--------------------------------------------------------------------------------
+<|bos|>The chemical symbol of gold is Au. The chemical symbol of silver is Ag. The chemical symbol of copper
+--------------------------------------------------------------------------------
+<|bos|>If yesterday was Friday, then tomorrow will be Saturday. If yesterday was Sunday, then tom
+--------------------------------------------------------------------------------
+<|bos|>The opposite of hot is cold. The opposite of cold is hot. The opposite of hot is cold.
+--------------------------------------------------------------------------------
+<|bos|>The planets of the solar system are: Mercury, Venus, Earth, Mars, Jupiter
+--------------------------------------------------------------------------------
+<|bos|>My favorite color is the blue. I love the blue because it's the color that I love the
+--------------------------------------------------------------------------------
+<|bos|>If 5*x + 3 = 13, then x is 13. If 5*x + 3 = 13, then
+
+Unconditioned samples:
+--------------------------------------------------------------------------------
+<|bos|>Don't Use the 'Fuck' Box
+Floor covers look wonderful with soccer pants, and part of that is because they are simple for years to come. Take Albany Mukesh's stellar turnover, for example, and put that many good-looking but Big Warner turnover into the 'Fuck' box, a chic cloth cover you can use for the ladies shorts, coal or close dress of the unbeatable Brooklyn Stars 2/3M and Melaki 3/3M major.
+The problem
+--------------------------------------------------------------------------------
+<|bos|>Waves that collect over whales in southwestern ?
+Waves that wave between occasional ?
+Well the simple way to do this is that your mouth beach waves really longitudinal and airforce if you blow a ruler between them eg it's a certain ......
