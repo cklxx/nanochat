@@ -29,7 +29,7 @@ from nanochat.gpt import GPT, GPTConfig, Linear
 from nanochat.dataloader import tokenizing_distributed_data_loader_bos_bestfit, tokenizing_distributed_data_loader_with_state_bos_bestfit
 from nanochat.common import compute_init, compute_cleanup, print0, DummyWandb, print_banner, get_base_dir, autodetect_device_type, get_peak_flops, COMPUTE_DTYPE, COMPUTE_DTYPE_REASON, is_ddp_initialized
 from nanochat.tokenizer import get_tokenizer, get_token_bytes
-from nanochat.checkpoint_manager import save_checkpoint, load_checkpoint
+from nanochat.checkpoint_manager import save_checkpoint, load_checkpoint, find_last_step
 from nanochat.loss_eval import evaluate_bpb
 from nanochat.engine import Engine
 from nanochat.flash_attention import HAS_FA3
@@ -68,6 +68,8 @@ parser.add_argument("--warmup-steps", type=int, default=40, help="number of step
 parser.add_argument("--warmdown-ratio", type=float, default=0.65, help="ratio of iterations for LR warmdown")
 parser.add_argument("--final-lr-frac", type=float, default=0.05, help="final LR as fraction of initial LR")
 parser.add_argument("--resume-from-step", type=int, default=-1, help="resume training from this step (-1 = disable)")
+parser.add_argument("--init-from-checkpoint-tag", type=str, default="", help="model-tag of a previously-trained checkpoint to load weights from (fresh optimizer/schedule; for continued pretraining)")
+parser.add_argument("--init-from-checkpoint-step", type=int, default=-1, help="step of the checkpoint to load weights from (default: last)")
 # Evaluation
 parser.add_argument("--eval-every", type=int, default=250, help="evaluate val bpb every N steps (-1 = disable)")
 parser.add_argument("--eval-tokens", type=int, default=80*524288, help="number of tokens to evaluate val loss on")
@@ -160,6 +162,20 @@ if resuming:
     model_data, optimizer_data, meta_data = load_checkpoint(checkpoint_dir, args.resume_from_step, device, load_optimizer=True, rank=ddp_rank)
     model.load_state_dict(model_data, strict=True, assign=True)
     del model_data # free up this memory after the copy
+
+# Continued pretraining: load *just the model weights* from an earlier
+# checkpoint (no optimizer state, no dataloader state). The new run gets a
+# fresh warmup/constant/warmdown schedule and a fresh Muon+AdamW optimizer
+# so we don't get a discontinuous LR jump at the join.
+if args.init_from_checkpoint_tag and not resuming:
+    init_dir = os.path.join(base_dir, "base_checkpoints", args.init_from_checkpoint_tag)
+    init_step = args.init_from_checkpoint_step if args.init_from_checkpoint_step != -1 else find_last_step(init_dir)
+    print0(f"Continued-pretraining: initializing weights from {init_dir} step {init_step}")
+    init_model_data, _, _ = load_checkpoint(init_dir, init_step, device, load_optimizer=False, rank=ddp_rank)
+    # strip torch.compile's _orig_mod. prefix if present (existing checkpoints from this branch have it)
+    init_model_data = {k.removeprefix("_orig_mod."): v for k, v in init_model_data.items()}
+    model.load_state_dict(init_model_data, strict=True, assign=True)
+    del init_model_data
 
 # -----------------------------------------------------------------------------
 # FP8 training initialization and management (this has to be done before torch.compile)
