@@ -263,17 +263,24 @@ same V100 budget:
 |---|---|---:|---:|---:|---:|
 | v2 best (xdata) | scratch | 47 shards (~1.1 B tok) | 1.94 B | 0.848 | **0.1414** |
 | cont1 | xdata ckpt | 48 shards (refreshed, ~1.15 B tok) | 1.94 B | 0.841 | **0.1528** (+0.011) |
-| cont2 | cont1 ckpt | **96 shards (~2.3 B tok)** | 1.94 B | TBD | TBD |
+| cont2 | cont1 ckpt | **96 shards (~2.3 B tok)** | 1.94 B | **0.832** | **0.1465** (−0.006 vs cont1) |
 
 cont1 — same compute, same-size but reshuffled data — delivered +0.011
 CORE. Reasoning tasks dominate the gain (arc_easy +0.10, piqa +0.09,
 winograd +0.10) while factual recall slips slightly (jeopardy −0.006).
 See `RESULTS_cont.md` for the full breakdown.
 
-cont2 (in progress at the time of writing) doubles the data pool to
-~2.3 B tokens by adding the freshly-cleaned `extra2` shards (49
-additional shards downloaded and cleaned 2026-05-19). Result will be
-appended to this section.
+cont2 doubles the data pool to ~2.3 B tokens by adding the freshly-cleaned
+`extra2` shards. **It broke the cont chain.** Despite val_bpb improving
+to 0.832 (the best v2-family checkpoint), CORE *fell* to 0.1465 — losing
+0.006 to cont1 while still ahead of xdata by +0.005. Big regressions
+hit commonsense_qa (−0.068), boolq (−0.064), arc_easy (−0.031) — the
+exact reasoning tasks that made cont1 a win.
+
+Both hypotheses (over-distillation by repeated warmdown, or diminishing
+returns from same-distribution data) imply the same v3 fix: **change
+something other than data volume** — deeper model (Run B, d=14), more
+FLOPs from scratch, or an external code/math mix. See `RESULTS_cont2.md`.
 
 ### Data composition aside
 
