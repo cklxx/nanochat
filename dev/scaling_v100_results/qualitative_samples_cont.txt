@@ -1,0 +1,41 @@
+Conditioned samples (continued pretraining of v100_emerge_v8k_1.5e18_d12_xdata
+on the refreshed 48-shard cleaned corpus; final CORE = 0.1528, val_bpb = 0.841):
+--------------------------------------------------------------------------------
+<|bos|>The capital of France is the capital of the French capital city of Paris. The capital of Paris
+--------------------------------------------------------------------------------
+<|bos|>The chemical symbol of gold is Au. It is a soft, silvery-white metal that is
+--------------------------------------------------------------------------------
+<|bos|>If yesterday was Friday, then tomorrow will be Saturday. If yesterday was Sunday, then tom
+--------------------------------------------------------------------------------
+<|bos|>The opposite of hot is cold. The opposite of cold is hot. The opposite of hot is cold.
+--------------------------------------------------------------------------------
+<|bos|>The planets of the solar system are: Mercury, Venus, Mars, Jupiter, S
+--------------------------------------------------------------------------------
+<|bos|>My favorite color is blue. I love the color blue because it is a very calming color.
+--------------------------------------------------------------------------------
+<|bos|>If 5*x + 3 = 13, then x is 5*x + 3 = 13. If 5*x
+
+Side-by-side vs the d=12/1.5e18 xdata baseline (CORE 0.1414):
+
+  capital-of-France  baseline: "The capital of France is Paris, and the city of Paris is the capital of France."
+                     cont:     "The capital of France is the capital of the French capital city of Paris. The capital of Paris"
+                     verdict:  baseline more direct; cont degenerates into apposition
+
+  chemical-symbols   baseline: "The chemical symbol of gold is Au. The chemical symbol of silver is Ag. The chemical symbol of copper"
+                     cont:     "The chemical symbol of gold is Au. It is a soft, silvery-white metal that is"
+                     verdict:  cont produces richer continuation; baseline only completes the obvious pattern
+
+  planets            baseline: "Mercury, Venus, Earth, Mars, Jupiter"
+                     cont:     "Mercury, Venus, Mars, Jupiter, S..."
+                     verdict:  *cont skipped Earth — fact recall degraded*
+
+  algebra            baseline: "If 5*x + 3 = 13, then x is 13."
+                     cont:     "If 5*x + 3 = 13, then x is 5*x + 3 = 13."
+                     verdict:  both wrong; cont parrots the prompt instead of guessing
+
+Quick read: continued pretraining moved capability toward fluent prose
+continuation (gold-symbol sample) and away from rote pattern completion
+(planets, chemical symbols, capitals). Quantitative CORE confirms:
+reasoning tasks (arc_easy +0.10, piqa +0.09, winograd +0.10) gained
+strongly while factual-retrieval tasks (jeopardy, bigbench_qa_wikidata)
+lost a touch. Net: +0.011 absolute CORE, +8.1 % relative.
