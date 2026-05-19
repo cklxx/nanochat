@@ -34,11 +34,17 @@ bpb linearly past emergence.
 
 ## 3. New resources
 
-- **5.8 B tokens available** (as of 2026-05-19): 48 existing cleaned
+- **~2.3 B tokens available** (as of 2026-05-19): 48 existing cleaned
   shards + **49 fresh cleaned shards** (extra2 batch — shard 51-100;
   shard 51 was a 54 MB partial download and was quarantined as
-  `.corrupt`). Total **97 cleaned shards, 9.3 GB on disk** ≈ 5.8 B
-  tokens at vocab=8K. Up from 1.94 B tokens used in the best v2 run.
+  `.corrupt`). Total **96 train + 1 val cleaned shards, 9.3 GB on
+  disk** ≈ 2.3 B tokens at vocab=8K (4.0 bytes/token). Up from
+  ~1.1 B token pool used in the best v2 run — so cont2 sees a true
+  2× data pool, not 5.8 B as initially estimated.
+- **Data composition (sampled 28,800 docs, 300 per shard)**: 95.8 % web
+  prose by chars, ~1 % structured/lists, <0.2 % real math, <0.1 %
+  real code. ClimbMix is effectively a pure prose corpus — see
+  `DATA_COMPOSITION.md` for details.
 - **`--init-from-checkpoint-tag` works**: validated by the cont run —
   staged training without restarting from scratch is now a usable tool.
 
