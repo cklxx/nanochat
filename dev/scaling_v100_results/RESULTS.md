@@ -218,64 +218,74 @@ research that informed the decisions.
 |---|---|---|
 | tokenizer vocab | 32 K | **8 K** (`tokenizer_v8k/`) |
 | embed:transformer ratio at d=4 | 8 : 1 | **2 : 1** |
-| data corpus | 7 train shards (~440 M tokens) | 7 → 22 train shards in progress |
+| data corpus | 7 train shards (~170 M tokens at vocab=8K) | grew to 47-48 shards (~1.15 B tokens) by end of sweep |
 | hyperparameters | nanochat defaults | nanochat defaults (unchanged) |
 | sweep schedule | 5 depths × 4 budgets dense | progressive `(depth, FLOPs)` probe, stop at CORE ≥ 0.20 |
 
-### v2 partial results (4 / 8 runs, single V100, ~5 h elapsed)
+### v2 final results (6 runs, single V100, ~24 h cumulative)
 
-| C (FLOPs) | depth | val_bpb | CORE | epochs of data |
-|---:|---:|---:|---:|---:|
-| 3e16 | 4 | 1.114 | +0.050 | 1.2 |
-| 1e17 | 4 | 1.092 | +0.044 | 4.0 |
-| **1e17** | **6** | **1.014** | **+0.075** | 1.6 |
-| 3e17 | 6 | 0.989 | +0.077 | 4.9 |
+The full v2 sweep is in `emerge.csv`. Final IsoFLOP-frontier numbers:
 
-**Two findings before pausing the queue:**
+| C (FLOPs) | depth | params | tokens | val_bpb | CORE | wallclock |
+|---:|---:|---:|---:|---:|---:|---:|
+| 3e16   | 4  | 11.5 M  | 530 M | 1.114 | +0.050 | 15 m |
+| 1e17   | 4  | 11.5 M  | 1.77 B | 1.092 | +0.044 | 48 m |
+| 1e17   | 6  | 26 M    | 718 M | 1.014 | +0.075 | 40 m |
+| 3e17   | 6  | 26 M    | 2.16 B | 0.989 | +0.077 | 2 h |
+| 1e18   | 8  | 50 M    | 3.61 B | 0.905 | +0.119 | 6 h |
+| **1.5e18** | **12** | **135 M** | **1.94 B** | **0.848** | **+0.1414** | **9 h** |
 
-1. **The vocab shrink worked — partially.** At fixed 1e17 FLOPs, switching
-   from d=4 → d=6 dropped val_bpb 1.092 → 1.014 and bumped CORE 0.044 →
-   0.075 (+70 %). The IsoFLOP optimum did move to a larger model exactly
-   as RECIPE.md predicted.
+The **1.5 e18 / d=12** run is the v2 champion: it lifted CORE from
++0.072 (v1 best) to +0.1414 (+97 %). v1-vs-v2 fits are summarised in
+`fit_summary_v1v2.json`; the loss-vs-compute power law flattens from
+α<sub>L</sub> = 0.168 (v1, pre-emergence) to α<sub>L</sub> = 0.064 (v2,
+post-emergence).
 
-2. **CORE saturated at +0.077.** Going 1e17 → 3e17 (3 × compute) on d=6
-   only dropped val_bpb 1.014 → 0.989 (–2.5 %) and CORE was unchanged.
-   The local L(C) slope is only **–0.052** vs the v1 best-fit's –0.168,
-   because at 3e17 d=6 we ran **5 epochs of the same 440 M-token
-   corpus** — multi-epoch overtraining is now the bottleneck.
+Findings:
 
-**Course correction (in flight):**
+1. **The vocab shrink delivered the predicted N\* shift.** d=12 became
+   compute-optimal at 1.5 e18 FLOPs — impossible under the v1 32K-vocab
+   embedding tax.
+2. **CORE 0.20 was *not* reached** inside the 24-h V100 cap. The gap is
+   ~+0.06, which the v2 L(C) slope says costs roughly 4–8× more compute.
+3. **Capability flips from rote-completion to fact recall** around
+   1 e18 FLOPs. See `qualitative_samples_d12.txt`: the 1.5 e18 model
+   correctly produces "Paris", "Au, Ag, …", and "Mercury, Venus, Earth,
+   Mars, Jupiter".
 
-- Killed the queued 3e17 d=4 (would have been 13 epochs, hopeless).
-- Started a parallel download of 20 + extra ClimbMix shards into
-  `base_data_climbmix_extra/` (proxy is slow; ~2/40 done at the time of
-  writing).
-- Wrote `runs/scaling/v100_emerge_final.sh` to (a) clean & merge new
-  shards while pinning the original val shard as `shard_99999.parquet`,
-  then (b) run **1 e18 FLOPs at d=8** as the final big push. With ~20
-  more shards this becomes ~4 epochs rather than the 13 it would be on
-  the v1 data slice.
-- Remaining budget: ~19 h of the 24-h cap. 1 e18 d=8 needs ≈ 5 h.
+## 7. Continued pretraining (cont, cont2) and the data-pool experiment
 
-**Projected vs achievable CORE at 1e18:** the v1 L(C) extrapolation said
-~0.20, but the v2 d=6 local slope says ~0.10. The truth is somewhere in
-between — the bigger d=8 model + larger corpus should escape the
-multi-epoch plateau, but we can no longer promise to clear 0.20 inside
-24 V100-hours. If the final run lands at 0.10 – 0.15, the writeup will
-report the compute gap explicitly (likely 2 – 4 × more V100-hours, or a
-move to multi-GPU A100/H100).
+After the v2 sweep, two extra runs tested whether **continued
+pretraining + fresh data** can push past the 0.1414 plateau on the
+same V100 budget:
 
-| compute (FLOPs) | depth | params_total | tokens | val_bpb |
-|---|---|---|---|---|
-| … | … | … | … | … |
+| Run | Init | Data pool | Tokens trained | val_bpb | CORE |
+|---|---|---:|---:|---:|---:|
+| v2 best (xdata) | scratch | 47 shards (~1.1 B tok) | 1.94 B | 0.848 | **0.1414** |
+| cont1 | xdata ckpt | 48 shards (refreshed, ~1.15 B tok) | 1.94 B | 0.841 | **0.1528** (+0.011) |
+| cont2 | cont1 ckpt | **96 shards (~2.3 B tok)** | 1.94 B | TBD | TBD |
 
-Power-law fits (placeholder until run):
+cont1 — same compute, same-size but reshuffled data — delivered +0.011
+CORE. Reasoning tasks dominate the gain (arc_easy +0.10, piqa +0.09,
+winograd +0.10) while factual recall slips slightly (jeopardy −0.006).
+See `RESULTS_cont.md` for the full breakdown.
 
-- $L(C) = A \cdot C^{-\alpha_L}$ with $\alpha_L \approx$ TODO ($R^2 = $ TODO)
-- $N^*(C) \propto C^{a}$ with $a \approx$ TODO
-- $D^*(C) \propto C^{b}$ with $b \approx$ TODO
+cont2 (in progress at the time of writing) doubles the data pool to
+~2.3 B tokens by adding the freshly-cleaned `extra2` shards (49
+additional shards downloaded and cleaned 2026-05-19). Result will be
+appended to this section.
 
-## 5. Reproduction
+### Data composition aside
+
+`DATA_COMPOSITION.md` profiles the 96-shard cleaned corpus by sampling
+28,800 docs. The headline: ClimbMix as we use it is **95.8 % web prose
+by characters**, with <0.2 % real math and <0.1 % real code. The
+NVIDIA HF card's "web text + code + math + other" claim collapses to
+near-zero code/math after the Karpathy repackage and our cleaning.
+Implication: future CORE pushes need **external mixes** (e.g. The Stack
+v2 for code, OpenWebMath for math), not deeper sampling of ClimbMix.
+
+## 8. Reproduction
 
 ```bash
 # remote V100 setup
@@ -301,7 +311,7 @@ bash runs/scaling/v100_min.sh         # full IsoFLOP sweep
 python -m scripts.scaling.analyze
 ```
 
-## 6. Caveats
+## 9. Caveats
 
 - Embedding parameters dominate at small scale because vocab=32k is fixed.
   We therefore use **Kaplan-style effective N = transformer + lm_head** for

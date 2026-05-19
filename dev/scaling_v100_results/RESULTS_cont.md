@@ -28,9 +28,10 @@ init_from_tag:  v100_emerge_v8k_1.5e18_d12_xdata  (CORE 0.1414 checkpoint)
 target_flops:   1.5e18 (another full schedule on top of the checkpoint)
 depth:          12
 window_pattern: L
-data:           base_data_clean (48 shards, ~3 B tokens — same source,
-                refreshed corpus that overlaps but is not identical with
-                the xdata run's data)
+data:           base_data_clean (48 shards, ~1.15 B tokens at vocab=8K
+                — same source, refreshed corpus that overlaps but is not
+                identical with the xdata run's data; the 1.94 B training
+                budget cycles ~1.7× through this pool)
 lr_schedule:    full peak (lrm=1.0) → constant → warmdown (0.65 ratio)
 seed/shuffle:   default (different from xdata)
 device_batch:   4 (same as xdata)
@@ -127,8 +128,9 @@ This validates the `--init-from-checkpoint-tag` mechanism for staged
 training and confirms data isn't yet the binding constraint at this
 scale (a same-size refresh adds ~0.01 CORE, not transformative).
 
-Given the new 49 cleaned shards (extra2 batch, total now 97 shards ≈
-5.8 B tokens), the v3 plan in `RECIPE_v3.md` is **Branch I** (data is
+Given the new 49 cleaned shards (extra2 batch, total now 96 train + 1 val
+shards ≈ 2.3 B tokens at vocab=8K — 2× the pool the cont run saw),
+the v3 plan in `RECIPE_v3.md` is **Branch I** (data is
 worth refreshing). Recommended next runs:
 
 | # | depth | FLOPs | tokens/param | rationale |

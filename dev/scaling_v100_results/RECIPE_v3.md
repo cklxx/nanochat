@@ -54,7 +54,7 @@ bpb linearly past emergence.
 |---|---|---|
 | Q1: 更多 FLOPs 上 d=12 还能涨吗? | 测 αL 在 emergence 后斜率 | 3e18 / d=12 |
 | Q2: 更深的模型 (d=14, d=16) 在同等 FLOPs 是否更优? | 测 N* (compute-optimal params) 是否随 C 上移 | 1.5e18 / d=14 |
-| Q3: 数据扩到 6B 是否解锁更高 CORE? | 配合 Q1, 比较 token-rich vs token-starved 同 FLOPs 性能 | 3e18 / d=12 用 6B 数据 |
+| Q3: 数据扩到 2.3B (vs v2 best 用的 1.1B 池) 是否解锁更高 CORE? | 配合 Q1, 比较 token-rich vs token-starved 同 FLOPs 性能 | 3e18 / d=12 用 2.3B 数据池, 1.7× epoch |
 
 ## 5. v3 sweep plan
 
@@ -76,7 +76,8 @@ Optional Run C (only if A+B both yield CORE ≥ 0.16 to motivate):
 
 **v2-cont eval result (2026-05-19 11:55):** CORE 0.1528, val_bpb 0.841 →
 **Branch I committed.** Continued pretraining gave +0.011 CORE on a
-same-size data refresh, so a true 2× data refresh (6 B tokens) is
+same-size data refresh, so a true 2× data refresh (2.3 B tokens, the
+post-extra2 cleaned corpus — see `DATA_COMPOSITION.md`) is
 worth the cleaning step before v3 runs. Reasoning-task gains dominated
 the bump (arc_easy +0.10, piqa +0.09, winograd +0.10) while factual-
 recall tasks slid slightly (jeopardy −0.006, bigbench_qa_wikidata −0.011).

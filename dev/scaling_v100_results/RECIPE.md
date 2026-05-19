@@ -11,7 +11,16 @@
 - **DCLM** vs **FineWeb-Edu**: DCLM 在等 token 预算下普遍更优 ([llm.c discussion](https://github.com/karpathy/llm.c/discussions/664))
 - **ClimbMix** 是 NVIDIA 基于 CLIMB 框架自动迭代搜出的混合配方，作者声明"等 token 预算下超过 DCLM" ([HF](https://huggingface.co/papers/2504.13161))
 
-**结论:** 数据保持 ClimbMix。我们已下载 7 个 shard (~1.75B chars ≈ 440M tokens with vocab=8K)，对小模型多 epoch 复用足够。
+**结论:** 数据保持 ClimbMix。我们已下载 7 个 shard (~1.75B chars ≈ 440M
+tokens with vocab=8K)，对小模型多 epoch 复用足够。
+
+> *后续修正 (2026-05-19):* 实测 vocab=8K 在 ClimbMix 上的压缩比是
+> **4.0 bytes/token** (不是预估的 3.96)，所以"440M tokens" 实际是
+> **~170M tokens** (1.75B 字符 ÷ 4 ÷ 2 GB-to-clean-loss ≈ 0.17B)；
+> 待 v3 期数据池扩到 96 shard 时实测到 **2.3 B tokens** 池。详细分析见
+> [`DATA_COMPOSITION.md`](DATA_COMPOSITION.md)。同时 ClimbMix 实际是
+> **96 % web prose**，code/math 含量 < 0.3 %，所以"代码/数学能力"在本数据上
+> 不可指望，需要外部 mix。
 
 ## 2. Tokenizer — 改小
 
