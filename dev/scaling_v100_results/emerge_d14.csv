@@ -1,0 +1,2 @@
+flops_budget,depth,model_dim,params_total,num_iterations,tokens_trained,val_bpb,train_bpb,core_metric,train_time_sec,eval_time_sec,init_from,data_shards
+1.5e18,14,896,200934018,2463,1291321344,0.853133,0.853472,0.1403,29674,4015,scratch,196

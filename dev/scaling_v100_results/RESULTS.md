@@ -259,11 +259,12 @@ After the v2 sweep, two extra runs tested whether **continued
 pretraining + fresh data** can push past the 0.1414 plateau on the
 same V100 budget:
 
-| Run | Init | Data pool | Tokens trained | val_bpb | CORE |
-|---|---|---:|---:|---:|---:|
-| v2 best (xdata) | scratch | 47 shards (~1.1 B tok) | 1.94 B | 0.848 | **0.1414** |
-| cont1 | xdata ckpt | 48 shards (refreshed, ~1.15 B tok) | 1.94 B | 0.841 | **0.1528** (+0.011) |
-| cont2 | cont1 ckpt | **96 shards (~2.3 B tok)** | 1.94 B | **0.832** | **0.1465** (−0.006 vs cont1) |
+| Run | Init | Depth | Data pool | Tokens trained | val_bpb | CORE |
+|---|---|---:|---:|---:|---:|---:|
+| v2 best (xdata) | scratch | 12 | 47 shards (~1.1 B tok) | 1.94 B | 0.848 | **0.1414** |
+| cont1 | xdata ckpt | 12 | 48 shards (refreshed, ~1.15 B tok) | 1.94 B | 0.841 | **0.1528** (+0.011) |
+| cont2 | cont1 ckpt | 12 | **96 shards (~2.3 B tok)** | 1.94 B | **0.832** | **0.1465** (−0.006 vs cont1) |
+| **d=14** | **scratch** | **14** | **196 shards (~4.6 B tok)** | **1.29 B** | **0.848** | **0.1403** (−0.001 vs xdata) |
 
 cont1 — same compute, same-size but reshuffled data — delivered +0.011
 CORE. Reasoning tasks dominate the gain (arc_easy +0.10, piqa +0.09,
@@ -279,8 +280,21 @@ exact reasoning tasks that made cont1 a win.
 
 Both hypotheses (over-distillation by repeated warmdown, or diminishing
 returns from same-distribution data) imply the same v3 fix: **change
-something other than data volume** — deeper model (Run B, d=14), more
-FLOPs from scratch, or an external code/math mix. See `RESULTS_cont2.md`.
+something other than data volume** — deeper model, more FLOPs from
+scratch, or an external code/math mix. See `RESULTS_cont2.md`.
+
+### v3 Run B — Depth (d=14 from scratch, same 1.5 e18 FLOPs)
+
+Tested the "depth was the bottleneck" hypothesis directly: same compute,
++49 % parameters (135 M → 201 M). Result (`RESULTS_d14.md`): val_bpb
+**identical to d=12 xdata** (0.848 vs 0.848) but CORE slipped
+**−0.001** (0.1403). The same arc_easy/piqa/winograd reasoning pattern
+showed up, but factual / reading-comp tasks fell further (squad −0.07,
+bigbench_qa_wikidata −0.06) because at fixed FLOPs the deeper model
+trains on **fewer tokens** (1.29 B vs 1.94 B) — token:param ratio drops
+from 14 → 9, below the nanochat-Muon optimum of 10-11. Depth scaling
+at the **compute budget is flat** — IsoFLOP is real and the bottleneck
+is compute, not depth.
 
 ### Data composition aside
 
