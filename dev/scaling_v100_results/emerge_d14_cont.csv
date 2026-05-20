@@ -1,0 +1,2 @@
+flops_budget,depth,model_dim,params_total,num_iterations,tokens_trained,val_bpb,train_bpb,core_metric,train_time_sec,eval_time_sec,init_from,data_shards
+1.5e18,14,896,200934018,2463,1291321344,0.833035,0.836117,0.1435,29617,2702,v100_emerge_v8k_1.5e18_d14,196

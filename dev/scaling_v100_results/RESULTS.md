@@ -265,6 +265,7 @@ same V100 budget:
 | cont1 | xdata ckpt | 12 | 48 shards (refreshed, ~1.15 B tok) | 1.94 B | 0.841 | **0.1528** (+0.011) |
 | cont2 | cont1 ckpt | 12 | **96 shards (~2.3 B tok)** | 1.94 B | **0.832** | **0.1465** (−0.006 vs cont1) |
 | **d=14** | **scratch** | **14** | **196 shards (~4.6 B tok)** | **1.29 B** | **0.848** | **0.1403** (−0.001 vs xdata) |
+| **d=14_cont** | **d=14 ckpt** | **14** | **196 shards (~4.6 B tok)** | **1.29 B** | **0.833** | **0.1435** (+0.003 vs d=14, −0.009 vs cont1 SOTA) |
 
 cont1 — same compute, same-size but reshuffled data — delivered +0.011
 CORE. Reasoning tasks dominate the gain (arc_easy +0.10, piqa +0.09,
@@ -295,6 +296,40 @@ trains on **fewer tokens** (1.29 B vs 1.94 B) — token:param ratio drops
 from 14 → 9, below the nanochat-Muon optimum of 10-11. Depth scaling
 at the **compute budget is flat** — IsoFLOP is real and the bottleneck
 is compute, not depth.
+
+### v3 Run B+ — Continued pretraining of d=14 (d=14_cont)
+
+After the d=14 baseline showed depth alone was flat, this run tested
+whether the d=14 capacity *could* be exploited if it got another full
+schedule's worth of compute. Init from the d=14 checkpoint, train
+another 1.5 e18 on the **doubled 196-shard pool** (~4.6 B tok), with
+mid-train CORE@50 every 100 steps for real-time diagnostic
+(`RESULTS_d14_cont.md`). The instrumentation gave us the full
+warmup→constant→warmdown CORE shape for the first time: CORE crashes
+to 0.08 by step 500, plateaus, then climbs back during warmdown.
+
+Final result: **val_bpb 0.833 (new SOTA, −0.020 vs xdata) but CORE
+only 0.1435** (+0.003 vs d=14 baseline, −0.009 vs cont1 SOTA). The
+val_bpb gain lands on language-modelling tasks (hellaswag +0.013,
+piqa +0.019, hellaswag_zeroshot +0.009) — d=14_cont is the *best*
+model on those four prose tasks — but reasoning/factual losses keep
+the total CORE below cont1.
+
+**Summary across all five v2/v3 models trained:**
+
+```
+val_bpb (low is good): d=14_cont (0.833) ≈ cont2 (0.832)
+                     < cont1 (0.841) < xdata = d=14 (0.848)
+CORE     (high is good): cont1 (0.1528) > cont2 (0.1465)
+                       > d=14_cont (0.1435) > xdata (0.1414) > d=14 (0.1403)
+```
+
+val_bpb and CORE have fully decoupled. Each axis we've perturbed (data
+refresh, data doubling, depth, depth+cont) lands within ±0.011 of the
+baseline CORE. **The remaining clean axis is FLOPs.** RECIPE_v3
+Run A' (3 e18 / d=12 from scratch with the now 396-shard / ~9.4 B-token
+corpus that's ready after the extra4 cleanup) is the next experiment
+with a chance of meaningfully moving CORE.
 
 ### Data composition aside
 
