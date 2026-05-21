@@ -71,6 +71,10 @@ def main():
     p.add_argument("--rows-per-group", type=int, default=DEFAULT_ROWS_PER_GROUP)
     p.add_argument("--prefix", default="shard_code",
                    help="shard filename prefix (default: shard_code)")
+    p.add_argument("--skip-docs", type=int, default=0,
+                   help="skip the first N docs of the stream (use to fetch fresh content on re-runs)")
+    p.add_argument("--start-idx", type=int, default=0,
+                   help="output shard index to start at (default 0, raises so we do not overwrite)")
     args = p.parse_args()
 
     os.makedirs(DATA_DIR, exist_ok=True)
@@ -81,7 +85,8 @@ def main():
 
     target_bytes = args.shard_target_mb * 1_000_000
 
-    shard_idx = 0
+    shard_idx = args.start_idx
+    stop_at = args.start_idx + args.num_shards
     buf_docs = []
     buf_bytes = 0
 
@@ -94,8 +99,14 @@ def main():
               flush=True)
 
     n_emitted = 0
+    n_skipped = 0
     for doc in stream_dataset(args.dataset, args.config, args.split, args.text_column):
-        if shard_idx >= args.num_shards:
+        if n_skipped < args.skip_docs:
+            n_skipped += 1
+            if n_skipped % 50_000 == 0:
+                print(f"  skip cursor at {n_skipped:,} / {args.skip_docs:,}", flush=True)
+            continue
+        if shard_idx >= stop_at:
             break
         buf_docs.append(doc)
         buf_bytes += len(doc.encode("utf-8", errors="replace"))
@@ -106,11 +117,12 @@ def main():
             buf_docs = []
             buf_bytes = 0
 
-    if buf_docs and shard_idx < args.num_shards:
+    if buf_docs and shard_idx < stop_at:
         flush(shard_idx, buf_docs)
         shard_idx += 1
 
-    print(f"\nWrote {shard_idx} shards, total docs streamed = {n_emitted:,}")
+    print(f"\nWrote {shard_idx - args.start_idx} shards (idx {args.start_idx}..{shard_idx-1}), "
+          f"docs streamed = {n_emitted:,}, docs skipped = {n_skipped:,}")
     return 0
 
 
