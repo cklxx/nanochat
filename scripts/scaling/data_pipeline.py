@@ -243,6 +243,25 @@ def _doc_passes(doc):
     return True, "ok"
 
 
+# Code-mode filters. Code rejects prose heuristics (lots of {};=, single-char
+# tokens, etc.), so we keep only length sanity + dedupe. MIN/MAX flipped
+# slightly to allow short snippets and long files.
+CODE_MIN_CHARS = 100
+CODE_MAX_CHARS = 400_000
+
+
+def _code_doc_passes(doc):
+    """Code-aware doc filter — drops only obvious garbage."""
+    if not doc:
+        return False, "empty"
+    L = len(doc)
+    if L < CODE_MIN_CHARS:
+        return False, "too_short"
+    if L > CODE_MAX_CHARS:
+        return False, "too_long"
+    return True, "ok"
+
+
 def cmd_clean(args):
     paths = list_parquets(args.in_dir)
     if not paths:
@@ -251,6 +270,9 @@ def cmd_clean(args):
     if args.max_shards:
         paths = paths[: args.max_shards]
     os.makedirs(args.out_dir, exist_ok=True)
+
+    passes_fn = _code_doc_passes if args.code else _doc_passes
+    mode_label = "code" if args.code else "prose"
 
     global_counter = Counter()
     seen_hashes = set()
@@ -261,9 +283,9 @@ def cmd_clean(args):
     for p in paths:
         kept_docs = []
         local_counter = Counter()
-        with stopwatch(f"clean {os.path.basename(p)}"):
+        with stopwatch(f"clean[{mode_label}] {os.path.basename(p)}"):
             for doc in iter_docs(p):
-                ok, reason = _doc_passes(doc)
+                ok, reason = passes_fn(doc)
                 local_counter[reason] += 1
                 if not ok:
                     continue
@@ -291,19 +313,31 @@ def cmd_clean(args):
         })
         print(f"  -> {out_path} kept={local_counter['ok']} (dup_prefix={local_counter['dup_prefix']})")
 
-    summary = {
-        "in_dir": args.in_dir,
-        "out_dir": args.out_dir,
-        "filters": {
+    if args.code:
+        filters_used = {
+            "mode": "code",
+            "CODE_MIN_CHARS": CODE_MIN_CHARS,
+            "CODE_MAX_CHARS": CODE_MAX_CHARS,
+            "PREFIX_HASH_LEN": PREFIX_HASH_LEN,
+        }
+        summary_name = "clean_summary_code.json"
+    else:
+        filters_used = {
+            "mode": "prose",
             "MIN_CHARS": MIN_CHARS, "MAX_CHARS": MAX_CHARS,
             "MIN_AVG_WORD_LEN": MIN_AVG_WORD_LEN, "MAX_AVG_WORD_LEN": MAX_AVG_WORD_LEN,
             "MIN_LETTER_RATIO": MIN_LETTER_RATIO,
             "PREFIX_HASH_LEN": PREFIX_HASH_LEN,
-        },
+        }
+        summary_name = "clean_summary.json"
+    summary = {
+        "in_dir": args.in_dir,
+        "out_dir": args.out_dir,
+        "filters": filters_used,
         "totals": dict(global_counter),
         "per_shard": summary_per_shard,
     }
-    path = os.path.join(REPORT_DIR, "clean_summary.json")
+    path = os.path.join(REPORT_DIR, summary_name)
     with open(path, "w") as f:
         json.dump(summary, f, indent=2)
     print(json.dumps(summary["totals"], indent=2))
@@ -406,6 +440,8 @@ def main():
     pc.add_argument("--out", dest="out_dir", default=DEFAULT_OUT_DIR)
     pc.add_argument("--max-shards", type=int, default=0)
     pc.add_argument("--rows-per-group", type=int, default=1000)
+    pc.add_argument("--code", action="store_true",
+                    help="apply code-aware filters (skip prose heuristics)")
     pc.set_defaults(func=lambda a: cmd_clean(_norm(a)))
 
     pv = sub.add_parser("validate")
