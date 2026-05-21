@@ -16,6 +16,10 @@
 #            nvidia-curand-cu12 nvidia-cusolver-cu12 nvidia-cusparse-cu12 \
 #            nvidia-nccl-cu12 nvidia-nvtx-cu12 nvidia-nvjitlink-cu12 \
 #            hf_transfer
+#        # IMPORTANT: torch 2.9.1 requires triton 3.5.x — newer
+#        # versions break Inductor with `KernelMetadata has no
+#        # attribute 'cluster_dims'`.
+#        uv pip install "triton<3.6"
 #
 # Then: bash runs/scaling/a100_resume_from_drive.sh
 #
