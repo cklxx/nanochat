@@ -24,6 +24,7 @@ source .venv/bin/activate
 TAG="${TAG:-a100_emerge_v8k_3e18_d12_code}"
 FLOPS="${FLOPS:-3e18}"
 DEVICE_BATCH="${DEVICE_BATCH:-64}"
+INIT_TAG="${INIT_TAG:-}"  # if set, init weights from this checkpoint tag (fresh schedule)
 
 RESULTS_DIR="$NANOCHAT_BASE_DIR/scaling_v100_emerge"
 mkdir -p "$RESULTS_DIR"
@@ -48,6 +49,12 @@ log "  prose shards    : $n_prose"
 log "  code shards     : $n_code"
 log "================================================"
 
+INIT_FROM_ARGS=()
+if [ -n "$INIT_TAG" ]; then
+    INIT_FROM_ARGS+=(--init-from-checkpoint-tag="$INIT_TAG")
+    log "init weights from checkpoint tag: $INIT_TAG (fresh optimizer + fresh schedule)"
+fi
+
 TR_START=$(date +%s)
 torchrun --standalone --nproc_per_node=1 -m scripts.base_train -- \
     --depth=12 \
@@ -62,6 +69,7 @@ torchrun --standalone --nproc_per_node=1 -m scripts.base_train -- \
     --sample-every=-1 \
     --save-every=1000 \
     --device-batch-size="$DEVICE_BATCH" \
+    "${INIT_FROM_ARGS[@]}" \
     2>&1 | tee "$LOG_TRAIN"
 TRAIN_TIME=$(( $(date +%s) - TR_START ))
 
