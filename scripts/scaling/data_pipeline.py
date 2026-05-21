@@ -35,6 +35,7 @@ import argparse
 import statistics
 from collections import Counter
 from contextlib import contextmanager
+from multiprocessing import Pool
 
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -262,6 +263,38 @@ def _code_doc_passes(doc):
     return True, "ok"
 
 
+def _clean_one_shard(task):
+    """Single-shard cleaning worker — used by both serial and parallel paths.
+
+    With shared_hashes=None, dedup is intra-shard only (safe for parallelism).
+    """
+    in_path, out_dir, code_mode, rows_per_group = task
+    passes_fn = _code_doc_passes if code_mode else _doc_passes
+    local_counter = Counter()
+    kept_docs = []
+    local_hashes = set()
+    for doc in iter_docs(in_path):
+        ok, reason = passes_fn(doc)
+        local_counter[reason] += 1
+        if not ok:
+            continue
+        h = hashlib.md5(doc[:PREFIX_HASH_LEN].encode("utf-8", errors="replace")).hexdigest()
+        if h in local_hashes:
+            local_counter["dup_prefix"] += 1
+            continue
+        local_hashes.add(h)
+        kept_docs.append(doc)
+    out_name = os.path.basename(in_path)
+    out_path = os.path.join(out_dir, out_name)
+    tbl = pa.table({"text": pa.array(kept_docs, type=pa.large_string())})
+    pq.write_table(tbl, out_path, compression="zstd", row_group_size=rows_per_group)
+    return {
+        "file": out_name,
+        "kept": len(kept_docs),
+        "counter": dict(local_counter),
+    }
+
+
 def cmd_clean(args):
     paths = list_parquets(args.in_dir)
     if not paths:
@@ -275,43 +308,67 @@ def cmd_clean(args):
     mode_label = "code" if args.code else "prose"
 
     global_counter = Counter()
-    seen_hashes = set()
     schema = pa.schema([("text", pa.large_string())])
     rg_target = args.rows_per_group
 
     summary_per_shard = []
-    for p in paths:
-        kept_docs = []
-        local_counter = Counter()
-        with stopwatch(f"clean[{mode_label}] {os.path.basename(p)}"):
-            for doc in iter_docs(p):
-                ok, reason = passes_fn(doc)
-                local_counter[reason] += 1
-                if not ok:
-                    continue
-                # Cross-shard near-duplicate by prefix hash
-                h = hashlib.md5(doc[:PREFIX_HASH_LEN].encode("utf-8", errors="replace")).hexdigest()
-                if h in seen_hashes:
-                    local_counter["dup_prefix"] += 1
-                    continue
-                seen_hashes.add(h)
-                kept_docs.append(doc)
-            out_name = os.path.basename(p)
-            out_path = os.path.join(args.out_dir, out_name)
-            tbl = pa.table({"text": pa.array(kept_docs, type=pa.large_string())})
-            pq.write_table(
-                tbl, out_path,
-                compression="zstd",
-                row_group_size=rg_target,
-            )
-        global_counter.update(local_counter)
-        summary_per_shard.append({
-            "file": out_name,
-            "in_docs": sum(local_counter.values()),
-            "kept": local_counter["ok"] - local_counter.get("dup_prefix", 0),
-            "rejected": dict(local_counter),
-        })
-        print(f"  -> {out_path} kept={local_counter['ok']} (dup_prefix={local_counter['dup_prefix']})")
+
+    if args.workers and args.workers > 1:
+        # Parallel path: intra-shard dedup only (each worker has its own hash set).
+        # Good for prose at small dup rates; for code prefer --workers 1 to keep
+        # global dedup.
+        tasks = [(p, args.out_dir, args.code, rg_target) for p in paths]
+        print(f"[parallel clean[{mode_label}] workers={args.workers} shards={len(tasks)}] "
+              "(intra-shard dedup only)", flush=True)
+        t0 = time.time()
+        with Pool(processes=args.workers) as pool:
+            for res in pool.imap_unordered(_clean_one_shard, tasks):
+                global_counter.update(res["counter"])
+                summary_per_shard.append({
+                    "file": res["file"],
+                    "in_docs": sum(res["counter"].values()),
+                    "kept": res["kept"],
+                    "rejected": res["counter"],
+                })
+                done = len(summary_per_shard)
+                if done % 25 == 0 or done == len(tasks):
+                    elapsed = time.time() - t0
+                    eta = elapsed * (len(tasks) - done) / max(done, 1)
+                    print(f"  [{done:>4}/{len(tasks)}] {res['file']} kept={res['kept']:,}  "
+                          f"elapsed={elapsed:.0f}s eta={eta:.0f}s", flush=True)
+    else:
+        seen_hashes = set()
+        for p in paths:
+            kept_docs = []
+            local_counter = Counter()
+            with stopwatch(f"clean[{mode_label}] {os.path.basename(p)}"):
+                for doc in iter_docs(p):
+                    ok, reason = passes_fn(doc)
+                    local_counter[reason] += 1
+                    if not ok:
+                        continue
+                    h = hashlib.md5(doc[:PREFIX_HASH_LEN].encode("utf-8", errors="replace")).hexdigest()
+                    if h in seen_hashes:
+                        local_counter["dup_prefix"] += 1
+                        continue
+                    seen_hashes.add(h)
+                    kept_docs.append(doc)
+                out_name = os.path.basename(p)
+                out_path = os.path.join(args.out_dir, out_name)
+                tbl = pa.table({"text": pa.array(kept_docs, type=pa.large_string())})
+                pq.write_table(
+                    tbl, out_path,
+                    compression="zstd",
+                    row_group_size=rg_target,
+                )
+            global_counter.update(local_counter)
+            summary_per_shard.append({
+                "file": out_name,
+                "in_docs": sum(local_counter.values()),
+                "kept": local_counter["ok"] - local_counter.get("dup_prefix", 0),
+                "rejected": dict(local_counter),
+            })
+            print(f"  -> {out_path} kept={local_counter['ok']} (dup_prefix={local_counter['dup_prefix']})")
 
     if args.code:
         filters_used = {
@@ -442,6 +499,9 @@ def main():
     pc.add_argument("--rows-per-group", type=int, default=1000)
     pc.add_argument("--code", action="store_true",
                     help="apply code-aware filters (skip prose heuristics)")
+    pc.add_argument("--workers", type=int, default=1,
+                    help="parallel workers (>1 disables cross-shard dedup; "
+                         "good for prose, prefer 1 for code)")
     pc.set_defaults(func=lambda a: cmd_clean(_norm(a)))
 
     pv = sub.add_parser("validate")
