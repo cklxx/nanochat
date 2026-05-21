@@ -65,10 +65,19 @@ class ModelWrapper:
 
 
 def load_hf_model(hf_path: str, device):
-    """Load a HuggingFace model and tokenizer."""
+    """Load a HuggingFace model and tokenizer.
+
+    Honors NANOCHAT_DTYPE for HF models too. Default device dtype is used
+    if unset. On V100 you almost always want NANOCHAT_DTYPE=float16 — the
+    SM 7.0 GPU has fp16 tensor cores but no bf16 tensor cores, so bf16
+    weights (the SmolLM2 default) get emulated in fp32 and run ~4-5×
+    slower than they should.
+    """
     print0(f"Loading HuggingFace model from: {hf_path}")
     from transformers import AutoModelForCausalLM
-    model = AutoModelForCausalLM.from_pretrained(hf_path)
+    from nanochat.common import COMPUTE_DTYPE, COMPUTE_DTYPE_REASON
+    print0(f"Loading HF weights as {COMPUTE_DTYPE} ({COMPUTE_DTYPE_REASON})")
+    model = AutoModelForCausalLM.from_pretrained(hf_path, torch_dtype=COMPUTE_DTYPE)
     model.to(device)
     model.eval()
     max_seq_len = 1024 if "gpt2" in hf_path else None
